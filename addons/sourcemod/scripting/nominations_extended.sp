@@ -1066,7 +1066,7 @@ stock bool IsNominateAllowed(int client)
 		int VIPTimeRestriction = GetVIPTimeRestriction();
 		if((VIPTimeRestriction) && AreRestrictionsActive())
 		{
-			CReplyToCommand(client, "[NE] During peak hours only VIPs are allowed to nominate maps. Wait for %d hours and %d minutes or buy VIP at Unloze.com to nominate maps again.", VIPTimeRestriction / 60, VIPTimeRestriction % 60);
+			CReplyToCommand(client, "[NE] During peak hours only VIPs are allowed to nominate maps. Wait for %d hours and %d minutes or buy VIP to nominate maps again.", VIPTimeRestriction / 60, VIPTimeRestriction % 60);
 			return false;
 		}
 	}
