@@ -5,33 +5,36 @@ Advanced Automated Map Voting with Extensions
 # Configuration
 ## mapchooser_extended.cfg
 ```
-"example_map"
+"mapchooser_extended"
 {
-    "MinTime"       "1800" // Min server time for make map available to nominate (Example: map will be able to nominate after 18:00 by server time)
-    "MaxTime"       "2300" // Max server time for make map unavailable to nominate (Example: map will not be able to nominate after 23:00 by server time)
-    "MinPlayers"    "25" // How many players min required for make map available to nominate (Example: if 25+ players on server the map will be able to nominate)
-    "MaxPlayers"    "50" // How many players max required for make map unavailable to nominate (Example: if 50+ players on server the map will not be able to nominate)
-    "CooldownTime"  "24h" // Map CooldownTime (Example: after this map played players should wait another 24 hours to nominate this map again)        
-    "Cooldown"      "20" // Map cooldown (Example: after this map played players should play another 20 maps to nominate this map again)        
-    "VIP"           "1" // Map can only be nominated by VIPs
-}
-"_groups"
-{
-    "1" // Numbers start from 1 to infinite but make sure its ordered correctly
+    "_groups"
     {
-        "_max" "1" // Maximum 1 consecutive map from this group
-        "ze_ffvii_mako_reactor_v2_2" {}
-        "ze_ffvii_mako_reactor_v3_1" {}
-        "ze_ffvii_mako_reactor_v5_3" {}
-        "ze_ffvii_mako_reactor_v6_b08" {}
+        "1" // Numbers start from 1 to infinite but make sure its ordered correctly
+        {
+            "_max" "1" // Maximum 1 consecutive map from this group
+            "ze_ffvii_mako_reactor_v2_2" {}
+            "ze_ffvii_mako_reactor_v3_1" {}
+            "ze_ffvii_mako_reactor_v5_3" {}
+            "ze_ffvii_mako_reactor_v6_b08" {}
+        }
+        "2" // wanderers
+        {
+            "_max" "2" // Maximum 2 consecutive maps from this group
+            "ze_ffxiv_wanderers_palace_css" {}
+            "ze_ffxiv_wanderers_palace_v4_5s" {}
+            "ze_ffxiv_wanderers_palace_v5_2f" {}
+            "ze_ffxiv_wanderers_palace_v6css" {}
+        }
     }
-    "2" // wanderers
+    "example_map"
     {
-        "_max" "2" // Maximum 2 consecutive maps from this group
-        "ze_ffxiv_wanderers_palace_css" {}
-        "ze_ffxiv_wanderers_palace_v4_5s" {}
-        "ze_ffxiv_wanderers_palace_v5_2f" {}
-        "ze_ffxiv_wanderers_palace_v6css" {}
+        "MinTime"       "1800" // Min server time for make map available to nominate (Example: map will be able to nominate after 18:00 by server time)
+        "MaxTime"       "2300" // Max server time for make map unavailable to nominate (Example: map will not be able to nominate after 23:00 by server time)
+        "MinPlayers"    "25" // How many players min required for make map available to nominate (Example: if 25+ players on server the map will be able to nominate)
+        "MaxPlayers"    "50" // How many players max required for make map unavailable to nominate (Example: if 50+ players on server the map will not be able to nominate)
+        "CooldownTime"  "24h" // Map CooldownTime (Example: after this map played players should wait another 24 hours to nominate this map again)        
+        "Cooldown"      "20" // Map cooldown (Example: after this map played players should play another 20 maps to nominate this map again)        
+        "VIP"           "1" // Map can only be nominated by VIPs
     }
 }
 ```
