@@ -2333,7 +2333,7 @@ public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 	if(client >= 1 && client <= MaxClients)
 	{
 		// Client has bypass flag, dont return vip restrictions
-		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_CHEATS))
+		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
 			return false;
 
 		// Client has vip flag, dont return vip restrictions
