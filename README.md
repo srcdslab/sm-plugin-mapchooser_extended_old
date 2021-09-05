@@ -39,7 +39,7 @@ Advanced Automated Map Voting with Extensions
 }
 ```
 
-# Server ConVars
+# Cvars and Commands
 ## MapChooser Extended:
 ### Cvars
 - mce_version - MapChooser Extended Version.
