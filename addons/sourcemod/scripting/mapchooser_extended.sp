@@ -2444,7 +2444,7 @@ void CheckMapRestrictions(bool time = false, bool players = false)
 		if(!client)
 			continue;
 
-		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_CHEATS, true))
+		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC, true))
 			continue;
 
 		bool remove;
