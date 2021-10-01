@@ -37,6 +37,7 @@
 
 #include <sourcemod>
 #include <sdktools_functions>
+#include <multicolors>
 #include <mapchooser>
 #include <nextmap>
 #include <AFKManager>
@@ -230,25 +231,25 @@ void AttemptRTV(int client)
 {
 	if (!RTVAllowed() || (g_Cvar_RTVPostVoteAction.IntValue == 1 && HasEndOfMapVoteFinished()))
 	{
-		ReplyToCommand(client, "[RTVE] %t", "RTV Not Allowed");
+		CReplyToCommand(client, "{green}[RTVE]{default} %t", "RTV Not Allowed");
 		return;
 	}
 
 	if (!CanMapChooserStartVote())
 	{
-		ReplyToCommand(client, "[RTVE] %t", "RTV Started");
+		CReplyToCommand(client, "{green}[RTVE]{default} %t", "RTV Started");
 		return;
 	}
 
 	if (GetClientCount(true) < g_Cvar_MinPlayers.IntValue)
 	{
-		ReplyToCommand(client, "[RTVE] %t", "Minimal Players Not Met");
+		CReplyToCommand(client, "{green}[RTVE]{default} %t", "Minimal Players Not Met");
 		return;
 	}
 
 	if (g_Voted[client])
 	{
-		ReplyToCommand(client, "[RTVE] %t", "Already Voted", g_Votes, g_VotesNeeded);
+		CReplyToCommand(client, "{green}[RTVE]{default} %t", "Already Voted", g_Votes, g_VotesNeeded);
 		return;
 	}
 
@@ -258,7 +259,7 @@ void AttemptRTV(int client)
 	g_Votes++;
 	g_Voted[client] = true;
 
-	PrintToChatAll("[RTVE] %t", "RTV Requested", name, g_Votes, g_VotesNeeded);
+	CPrintToChatAll("{green}[RTVE]{default} %t", "RTV Requested", name, g_Votes, g_VotesNeeded);
 
 	if (g_Votes >= g_VotesNeeded)
 	{
@@ -269,7 +270,7 @@ void AttemptRTV(int client)
 public Action Timer_DelayRTV(Handle timer)
 {
 	g_RTVAllowed = true;
-	PrintToChatAll("[RTVE] RockTheVote is available now!");
+	CPrintToChatAll("{green}[RTVE]{default} RockTheVote is available now!");
 }
 
 void StartRTV()
@@ -287,7 +288,7 @@ void StartRTV()
 		{
 			GetMapDisplayName(map, map, sizeof(map));
 
-			PrintToChatAll("[RTVE] %t", "Changing Maps", map);
+			CPrintToChatAll("{green}[RTVE]{default} %t", "Changing Maps", map);
 			CreateTimer(5.0, Timer_ChangeMap, _, TIMER_FLAG_NO_MAPCHANGE);
 			g_InChange = true;
 
@@ -340,7 +341,7 @@ public Action Command_ForceRTV(int client, int args)
 	if(!g_CanRTV)
 		return Plugin_Handled;
 
-	ShowActivity2(client, "[RTVE] ", "%t", "Initiated Vote Map");
+	CShowActivity2(client, "{green}[RTVE]{default} ", "%t", "Initiated Vote Map");
 
 	StartRTV();
 
@@ -352,7 +353,7 @@ public Action Command_DisableRTV(int client, int args)
 	if(!g_RTVAllowed)
 		return Plugin_Handled;
 
-	ShowActivity2(client, "[RTVE] ", "disabled RockTheVote.");
+	CShowActivity2(client, "{green}[RTVE]{default} ", "disabled RockTheVote.");
 
 	g_RTVAllowed = false;
 
@@ -364,7 +365,7 @@ public Action Command_EnableRTV(int client, int args)
 	if(g_RTVAllowed)
 		return Plugin_Handled;
 
-	ShowActivity2(client, "[RTVE] ", "enabled RockTheVote");
+	CShowActivity2(client, "{green}[RTVE]{default} ", "enabled RockTheVote");
 
 	g_RTVAllowed = true;
 
@@ -375,7 +376,7 @@ public Action Command_DebugRTV(int client, int args)
 {
 	if(!g_RTVAllowed)
 	{
-		ReplyToCommand(client, "[RTVE] RockTheVote is currently disabled.");
+		CReplyToCommand(client, "{green}[RTVE]{default} RockTheVote is currently disabled.");
 		return Plugin_Handled;
 	}
 
@@ -401,9 +402,9 @@ public Action Command_DebugRTV(int client, int args)
 
 	int iVotesNeededTotal = iVotesNeededSteam + iVotesNeededNoSteam;
 
-	ReplyToCommand(client, "[RTVE] Currently %d Players needed to start a RTV vote.", iVotesNeededTotal);
-	ReplyToCommand(client, "[RTVE] Calculated on %d Active Steam Players * %.2f Ratio = %d", iVotersSteam, GetConVarFloat(g_Cvar_Steam_Needed), iVotesNeededSteam);
-	ReplyToCommand(client, "[RTVE] + on %d Active No Steam Players * %.2f Ratio = %d.", iVotersNoSteam, GetConVarFloat(g_Cvar_NoSteam_Needed), iVotesNeededNoSteam);
+	CReplyToCommand(client, "{green}[RTVE]{default} Currently %d Players needed to start a RTV vote.", iVotesNeededTotal);
+	CReplyToCommand(client, "{green}[RTVE]{default} Calculated on %d Active Steam Players * %.2f Ratio = %d", iVotersSteam, GetConVarFloat(g_Cvar_Steam_Needed), iVotesNeededSteam);
+	CReplyToCommand(client, "{green}[RTVE]{default} + on %d Active No Steam Players * %.2f Ratio = %d.", iVotersNoSteam, GetConVarFloat(g_Cvar_NoSteam_Needed), iVotesNeededNoSteam);
 
 	return Plugin_Handled;
 }

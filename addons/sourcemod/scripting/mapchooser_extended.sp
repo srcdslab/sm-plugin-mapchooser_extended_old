@@ -607,7 +607,7 @@ public Action Command_SetNextmap(int client, int args)
 {
 	if(args < 1)
 	{
-		CReplyToCommand(client, "[MCE] Usage: sm_setnextmap <map>");
+		CReplyToCommand(client, "{green}[MCE]{default} Usage: {lightgreen}sm_setnextmap <map>");
 		return Plugin_Handled;
 	}
 
@@ -616,11 +616,11 @@ public Action Command_SetNextmap(int client, int args)
 
 	if(!IsMapValid(map))
 	{
-		CReplyToCommand(client, "[MCE] %t", "Map was not found", map);
+		CReplyToCommand(client, "{green}[MCE]{default} %t", "Map was not found", map);
 		return Plugin_Handled;
 	}
 
-	ShowActivity(client, "%t", "Changed Next Map", map);
+	CShowActivity(client, "%t", "Changed Next Map", map);
 	LogAction(client, -1, "\"%L\" changed nextmap to \"%s\"", client, map);
 
 	SetNextMap(map);
@@ -636,7 +636,7 @@ public Action Command_ReloadMaps(int client, int args)
 
 public Action Command_ExtendsLeft(int client, int args)
 {
-	CReplyToCommand(client, "[MCE] Available Extends: %d", GetConVarInt(g_Cvar_Extend) - g_Extends);
+	CReplyToCommand(client, "{green}[MCE]{default} Available Extends:{green} %d", GetConVarInt(g_Cvar_Extend) - g_Extends);
 	return Plugin_Handled;
 }
 
@@ -977,7 +977,7 @@ public void Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcas
 
 public Action Command_Mapvote(int client, int args)
 {
-	ShowActivity2(client, "[MCE] ", "%t", "Initiated Vote Map");
+	CShowActivity2(client, "{green}[MCE]{default} ", "%t", "Initiated Vote Map");
 
 	SetupWarningTimer(WarningType_Vote, MapChange_MapEnd, INVALID_HANDLE, true);
 
@@ -1005,7 +1005,7 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 		// Can't start a vote, try again in 5 seconds.
 		//g_RetryTimer = CreateTimer(5.0, Timer_StartMapVote, _, TIMER_FLAG_NO_MAPCHANGE);
 
-		CPrintToChatAll("[MCE] %t", "Cannot Start Vote", FAILURE_TIMER_LENGTH);
+		CPrintToChatAll("{green}[MCE]{default} %t", "Cannot Start Vote", FAILURE_TIMER_LENGTH);
 		Handle data;
 		g_RetryTimer = CreateDataTimer(1.0, Timer_StartMapVote, data, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
 
@@ -1248,7 +1248,7 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 	Call_Finish();
 
 	LogAction(-1, -1, "Voting for next map has started.");
-	CPrintToChatAll("[MCE] %t", "Nextmap Voting Started");
+	CPrintToChatAll("{green}[MCE]{default} %t", "Nextmap Voting Started");
 }
 
 public void Handler_VoteFinishedGeneric(Handle menu,
@@ -1297,9 +1297,9 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 				SetConVarInt(g_Cvar_Fraglimit, fraglimit + GetConVarInt(g_Cvar_ExtendFragStep));
 		}
 
-		CPrintToChatAll("[MCE] %t", "Current Map Extended", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
+		CPrintToChatAll("{green}[MCE]{default} %t", "Current Map Extended", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 		LogAction(-1, -1, "Voting for next map has finished. The current map has been extended.");
-		CPrintToChatAll("[MCE] Available Extends: %d", GetConVarInt(g_Cvar_Extend) - g_Extends);
+		CPrintToChatAll("{green}[MCE]{default} Available Extends:{green} %d", GetConVarInt(g_Cvar_Extend) - g_Extends);
 
 		// We extended, so we'll have to vote again.
 		g_RunoffCount = 0;
@@ -1309,7 +1309,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 	}
 	else if(strcmp(map, VOTE_DONTCHANGE, false) == 0)
 	{
-		CPrintToChatAll("[MCE] %t", "Current Map Stays", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
+		CPrintToChatAll("{green}[MCE]{default} %t", "Current Map Stays", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 		LogAction(-1, -1, "Voting for next map has finished. 'No Change' was the winner");
 
 		g_RunoffCount = 0;
@@ -1338,7 +1338,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 		g_HasVoteStarted = false;
 		g_MapVoteCompleted = true;
 
-		CPrintToChatAll("[MCE] %t", "Nextmap Voting Finished", map, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
+		CPrintToChatAll("{green}[MCE]{default} %t", "Nextmap Voting Finished", map, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 		LogAction(-1, -1, "Voting for next map has finished. Nextmap: %s.", map);
 	}
 }
@@ -1379,7 +1379,7 @@ public void Handler_MapVoteFinished(Handle menu,
 					break;
 			}
 
-			CPrintToChatAll("[MCE] %t", "Tie Vote", GetArraySize(mapList));
+			CPrintToChatAll("{green}[MCE]{default} %t", "Tie Vote", GetArraySize(mapList));
 			SetupWarningTimer(WarningType_Revote, view_as<MapChange>(g_ChangeTime), mapList);
 			return;
 		}
@@ -1409,7 +1409,7 @@ public void Handler_MapVoteFinished(Handle menu,
 					break;
 			}
 
-			CPrintToChatAll("[MCE] %t", "Revote Is Needed", required_percent);
+			CPrintToChatAll("{green}[MCE]{default} %t", "Revote Is Needed", required_percent);
 			SetupWarningTimer(WarningType_Revote, view_as<MapChange>(g_ChangeTime), mapList);
 			return;
 		}
@@ -2457,7 +2457,7 @@ void CheckMapRestrictions(bool time = false, bool players = false)
 			{
 				remove = true;
 
-				CPrintToChat(client, "[MCE] %t", "Nomination Removed Time Error", map);
+				CPrintToChat(client, "{green}[MCE]{default} %t", "Nomination Removed Time Error", map);
 			}
 		}
 
@@ -2469,9 +2469,9 @@ void CheckMapRestrictions(bool time = false, bool players = false)
 				remove = true;
 
 				if(PlayerRestriction < 0)
-					CPrintToChat(client, "[MCE] %t", "Nomination Removed MinPlayers Error", map);
+					CPrintToChat(client, "{green}[MCE]{default} %t", "Nomination Removed MinPlayers Error", map);
 				else
-					CPrintToChat(client, "[MCE] %t", "Nomination Removed MaxPlayers Error", map);
+					CPrintToChat(client, "{green}[MCE]{default} %t", "Nomination Removed MaxPlayers Error", map);
 			}
 		}
 
