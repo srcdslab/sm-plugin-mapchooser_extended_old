@@ -106,7 +106,7 @@ Advanced Automated Map Voting with Extensions
 - sm_nominate_exclude_time - Forces a map to be inserted into the recently played maps. Effectively blocking the map from being nominated.
 ## Rockthevote Extended:
 ### Cvars
-- sm_rtv_needed - Percentage of players needed to rockthevote (Def 60%).
+- sm_rtv_steam_needed - Percentage of players needed to rockthevote (Def 60%).
 - sm_rtv_nosteam_needed - Percentage of No-Steam players added to rockthevote calculation (Def 45%).
 - sm_rtv_minplayers - Number of players required before RTV will be enabled.
 - sm_rtv_initialdelay - Time (in seconds) before first RTV can be held.
