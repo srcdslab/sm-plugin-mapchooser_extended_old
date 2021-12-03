@@ -977,7 +977,10 @@ public void Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcas
 
 public Action Command_Mapvote(int client, int args)
 {
-	CShowActivity2(client, "{green}[MCE]{default} ", "%t", "Initiated Vote Map");
+	if (client == 0)
+  		ShowActivity2(client, "[MCE] ", "%t", "Initiated Vote Map");
+	else
+  		CShowActivity2(client, "{green}[MCE]{default} ", "%t", "Initiated Vote Map");
 
 	SetupWarningTimer(WarningType_Vote, MapChange_MapEnd, INVALID_HANDLE, true);
 

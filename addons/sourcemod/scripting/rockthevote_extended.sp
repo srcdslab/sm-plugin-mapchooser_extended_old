@@ -341,7 +341,10 @@ public Action Command_ForceRTV(int client, int args)
 	if(!g_CanRTV)
 		return Plugin_Handled;
 
-	CShowActivity2(client, "{green}[RTVE]{default} ", "%t", "Initiated Vote Map");
+	if (client == 0)
+  		ShowActivity2(client, "[RTVE] ", "%t", "Initiated Vote Map");
+	else
+  		CShowActivity2(client, "{green}[RTVE]{default} ", "%t", "Initiated Vote Map");
 
 	StartRTV();
 
@@ -353,7 +356,10 @@ public Action Command_DisableRTV(int client, int args)
 	if(!g_RTVAllowed)
 		return Plugin_Handled;
 
-	CShowActivity2(client, "{green}[RTVE]{default} ", "disabled RockTheVote.");
+	if (client == 0)
+  		ShowActivity2(client, "[RTVE] ", "disabled RockTheVote.");
+	else
+  		CShowActivity2(client, "{green}[RTVE]{default} ", "disabled RockTheVote.");
 
 	g_RTVAllowed = false;
 
@@ -365,7 +371,10 @@ public Action Command_EnableRTV(int client, int args)
 	if(g_RTVAllowed)
 		return Plugin_Handled;
 
-	CShowActivity2(client, "{green}[RTVE]{default} ", "enabled RockTheVote");
+	if (client == 0)
+  		ShowActivity2(client, "[RTVE] ", "enabled RockTheVote");
+	else
+  		CShowActivity2(client, "{green}[RTVE]{default} ", "enabled RockTheVote");
 
 	g_RTVAllowed = true;
 
