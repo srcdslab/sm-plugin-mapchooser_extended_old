@@ -632,6 +632,7 @@ public Action Command_SetNextmap(int client, int args)
 public Action Command_ReloadMaps(int client, int args)
 {
 	InitializeOfficialMapList();
+	return Plugin_Handled;
 }
 
 public Action Command_ExtendsLeft(int client, int args)
@@ -690,6 +691,7 @@ public Action Timer_StartWarningTimer(Handle timer)
 
 	if(!g_WarningInProgress || g_WarningTimer == INVALID_HANDLE)
 		SetupWarningTimer(WarningType_Vote);
+	return Plugin_Continue;
 }
 
 public Action Timer_StartMapVote(Handle timer, Handle data)
@@ -1859,6 +1861,7 @@ public int Native_InitiateVote(Handle plugin, int numParams)
 
 	SetupWarningTimer(WarningType_Vote, when, inputarray);
 	//InitiateVote(when, inputarray);
+	return 0;
 }
 
 public int Native_CanVoteStart(Handle plugin, int numParams)
@@ -1880,7 +1883,7 @@ public int Native_GetExcludeMapList(Handle plugin, int numParams)
 {
 	Handle array = view_as<Handle>(GetNativeCell(1));
 	if(array == INVALID_HANDLE)
-		return;
+		return 0;
 
 	static char map[PLATFORM_MAX_PATH];
 	StringMapSnapshot OldMapListSnapshot = g_OldMapList.Snapshot();
@@ -1890,6 +1893,7 @@ public int Native_GetExcludeMapList(Handle plugin, int numParams)
 		PushArrayString(array, map);
 	}
 	delete OldMapListSnapshot;
+	return 0;
 }
 
 public int Native_GetNominatedMapList(Handle plugin, int numParams)
@@ -1898,7 +1902,7 @@ public int Native_GetNominatedMapList(Handle plugin, int numParams)
 	Handle ownerarray = view_as<Handle>(GetNativeCell(2));
 
 	if(maparray == INVALID_HANDLE)
-		return;
+		return 0;
 
 	static char map[PLATFORM_MAX_PATH];
 
@@ -1914,6 +1918,7 @@ public int Native_GetNominatedMapList(Handle plugin, int numParams)
 			PushArrayCell(ownerarray, index);
 		}
 	}
+	return 0;
 }
 
 // Functions new to Mapchooser Extended
@@ -2360,6 +2365,7 @@ public int Native_AreRestrictionsActive(Handle plugin, int numParams)
 public int Native_SimulateMapEnd(Handle plugin, int numParams)
 {
 	OnMapEnd();
+	return 0;
 }
 
 stock void AddMapItem(const char[] map)

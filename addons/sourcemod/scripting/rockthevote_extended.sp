@@ -271,6 +271,7 @@ public Action Timer_DelayRTV(Handle timer)
 {
 	g_RTVAllowed = true;
 	CPrintToChatAll("{green}[RTVE]{default} RockTheVote is available now!");
+	return Plugin_Continue;
 }
 
 void StartRTV()

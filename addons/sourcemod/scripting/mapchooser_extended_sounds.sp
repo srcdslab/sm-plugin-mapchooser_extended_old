@@ -269,6 +269,7 @@ public Action Command_List_Soundsets(int client, int args)
 		GetArrayString(g_SetNames, i, setName, sizeof(setName));
 		ReplyToCommand(client, "[SM] %s", setName);
 	}
+	return Plugin_Handled;
 }
 
 stock void PlaySound(SoundEvent event)
