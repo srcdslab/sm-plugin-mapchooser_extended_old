@@ -184,7 +184,7 @@ enum NativeVotesCallFailType
  *
  * @param voteType			Vote type
  */
-native bool:NativeVotes_IsVoteTypeSupported(NativeVotesType:voteType);
+native bool NativeVotes_IsVoteTypeSupported(NativeVotesType voteType);
 
 /**
  * Creates a new, empty vote.
@@ -197,8 +197,8 @@ native bool:NativeVotes_IsVoteTypeSupported(NativeVotesType:voteType);
  *							the only default actions.
  * @return					A new vote Handle on INVALID_HANDLE if a vote type is unsupported by this game.
  */
-native Handle:NativeVotes_Create(MenuHandler:handler, NativeVotesType:voteType,
-							MenuAction:actions=NATIVEVOTES_ACTIONS_DEFAULT);
+native Handle NativeVotes_Create(MenuHandler handler, NativeVotesType voteType,
+							MenuAction action = NATIVEVOTES_ACTIONS_DEFAULT);
 
 /**
  * Frees all handles related to a vote.
@@ -208,7 +208,7 @@ native Handle:NativeVotes_Create(MenuHandler:handler, NativeVotesType:voteType,
  * @param vote				Vote handle
  * @noreturn
  */
-native Handle:NativeVotes_Close(Handle:vote);
+native Handle NativeVotes_Close(Handle vote);
 
 /**
  * Appends a new item to the end of a vote.  Only valid for Multiple Choice votes
@@ -218,7 +218,7 @@ native Handle:NativeVotes_Close(Handle:vote);
  * @return					True on success, false on failure.
  * @error					Invalid Handle, item limit reached, or if the vote is not multiple choice.
  */
-native bool:NativeVotes_AddItem(Handle:vote, const String:info[], const String:display[]);
+native bool NativeVotes_AddItem(Handle vote, const char[] info, const char[] display);
 
 /**
  * Inserts an item into the menu before a certain position; the new item will
@@ -230,7 +230,7 @@ native bool:NativeVotes_AddItem(Handle:vote, const String:info[], const String:d
  * @return					True on success, false on failure.
  * @error					Invalid Handle or vote position, or if the vote is not multiple choice.
  */
-native bool:NativeVotes_InsertItem(Handle:vote, position, const String:info[], const String:display[]);
+native bool NativeVotes_InsertItem(Handle vote, position, const char[] info, const char[] display);
 
 /**
  * Removes an item from the menu.
@@ -240,7 +240,7 @@ native bool:NativeVotes_InsertItem(Handle:vote, position, const String:info[], c
  * @return					True on success, false on failure.
  * @error					Invalid Handle or vote position,  or if the vote is not multiple choice.
  */
-native bool:NativeVotes_RemoveItem(Handle:vote, position);
+native bool NativeVotes_RemoveItem(Handle vote, position);
 
 /**
  * Removes all items from a vote.
@@ -249,7 +249,7 @@ native bool:NativeVotes_RemoveItem(Handle:vote, position);
  * @noreturn
  * @error					Invalid Handle or vote position, or if the vote is not multiple choice.
  */
-native NativeVotes_RemoveAllItems(Handle:vote);
+native NativeVotes_RemoveAllItems(Handle vote);
 
 /**
  * Retrieves information about a vote item.
@@ -261,11 +261,11 @@ native NativeVotes_RemoveAllItems(Handle:vote);
  * @return					True on success, false if position is invalid.
  * @error					Invalid Handlem
  */
-native bool:NativeVotes_GetItem(Handle:vote,
+native bool NativeVotes_GetItem(Handle vote,
 						position,
-						String:infoBuf[],
+						char[] infoBuf,
 						infoBufLen,
-						String:dispBuf[]="",
+						char[] dispBuf = "",
 						dispBufLen=0);
 
 /**
@@ -275,7 +275,7 @@ native bool:NativeVotes_GetItem(Handle:vote,
  * @return					Number of items in the vote.
  * @error					Invalid Handle.
  */
-native NativeVotes_GetItemCount(Handle:vote);
+native NativeVotes_GetItemCount(Handle vote);
 
 /**
  * Sets the vote's details for votes that support details
@@ -286,7 +286,7 @@ native NativeVotes_GetItemCount(Handle:vote);
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_SetDetails(Handle:vote, const String:argument[]);
+native NativeVotes_SetDetails(Handle vote, const char[] argument);
 
 /**
  * Returns the text of a vote's details if set.
@@ -297,7 +297,7 @@ native NativeVotes_SetDetails(Handle:vote, const String:argument[]);
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_GetDetails(Handle:vote, String:buffer[], maxlength);
+native NativeVotes_GetDetails(Handle vote, char[] buffer, maxlength);
 
 /**
  * Sets a custom vote's title
@@ -307,7 +307,7 @@ native NativeVotes_GetDetails(Handle:vote, String:buffer[], maxlength);
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_SetTitle(Handle:vote, const String:argument[]);
+native NativeVotes_SetTitle(Handle vote, const char[] argument);
 
 /**
  * Return the vote's Title.
@@ -320,7 +320,7 @@ native NativeVotes_SetTitle(Handle:vote, const String:argument[]);
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_GetTitle(Handle:vote, String:buffer[], maxlength);
+native NativeVotes_GetTitle(Handle vote, char[] buffer, maxlength);
 
 /**
  * Sets the target userid for vote
@@ -334,7 +334,7 @@ native NativeVotes_GetTitle(Handle:vote, String:buffer[], maxlength);
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_SetTarget(Handle:vote, client, bool:setDetails=true);
+native NativeVotes_SetTarget(Handle vote, client, bool setDetails = true);
 
 /**
  * Returns the userid of a vote's target
@@ -343,7 +343,7 @@ native NativeVotes_SetTarget(Handle:vote, client, bool:setDetails=true);
  * @return					Client index of target player or 0 for no target or target disconnected since vote started
  * @error					Invalid Handle.
  */
-native NativeVotes_GetTarget(Handle:vote);
+native NativeVotes_GetTarget(Handle vote);
 
 /**
  * Get the Steam ID of a vote's target
@@ -356,14 +356,14 @@ native NativeVotes_GetTarget(Handle:vote);
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_GetTargetSteam(Handle:vote, String:buffer[], maxlength);
+native NativeVotes_GetTargetSteam(Handle vote, char[] buffer, maxlength);
 
 /**
  * Returns whether a vote is in progress.
  *
  * @return					True if a NativeVotes vote is in progress, false otherwise.
  */
-native bool:NativeVotes_IsVoteInProgress();
+native bool NativeVotes_IsVoteInProgress();
 
 /**
  * Returns a style's maximum items
@@ -384,7 +384,7 @@ native NativeVotes_GetMaxItems();
  * @noreturn
  * @error					Invalid Handle.
  */
-native NativeVotes_SetOptionFlags(Handle:vote, flags);
+native NativeVotes_SetOptionFlags(Handle vote, flags);
 
 /**
  * Retrieves a menu's option flags.
@@ -395,7 +395,7 @@ native NativeVotes_SetOptionFlags(Handle:vote, flags);
  * @return					A bitstring of VOTEFLAG bits.
  * @error					Invalid Handle.
  */
-native NativeVotes_GetOptionFlags(Handle:vote);
+native NativeVotes_GetOptionFlags(Handle vote);
 
 /**
  * Cancels the vote in progress.
@@ -460,13 +460,13 @@ stock NativeVotes_FixResults(num_clients,
 							client_info[][],
 							item_info[][])
 {
-	for (new i = 0; i < num_clients; ++i)
+	for (int i = 0; i < num_clients; ++i)
 	{
 		client_info[i][VOTEINFO_CLIENT_INDEX] = client_indexes[i];
 		client_info[i][VOTEINFO_CLIENT_ITEM] = client_votes[i];
 	}
 
-	for (new i = 0; i < num_items; ++i)
+	for (int i = 0; i < num_items; ++i)
 	{
 		item_info[i][VOTEINFO_ITEM_INDEX] = item_indexes[i];
 		item_info[i][VOTEINFO_ITEM_VOTES] = item_votes[i];
@@ -482,7 +482,7 @@ stock NativeVotes_FixResults(num_clients,
  * @noreturn
  * @error					Invalid Handle or callback.
  */
-native NativeVotes_SetResultCallback(Handle:vote, NativeVotes_VoteHandler:callback);
+native NativeVotes_SetResultCallback(Handle vote, NativeVotes_VoteHandler callback);
 
 /**
  * Returns the number of seconds you should "wait" before displaying
@@ -502,7 +502,7 @@ native NativeVotes_CheckVoteDelay();
  * @return					True if client is allowed to vote, false otherwise.
  * @error					If no vote is in progress or client index is invalid.
  */
-native bool:NativeVotes_IsClientInVotePool(client);
+native bool NativeVotes_IsClientInVotePool(int client);
 
 /**
  * Redraws the current vote to a client in the voting pool.
@@ -514,7 +514,7 @@ native bool:NativeVotes_IsClientInVotePool(client);
  * @error					No vote in progress, client is not in the voting pool,
  *							or client index is invalid.
  */
-native bool:NativeVotes_RedrawClientVote(client, bool:revotes=true);
+native bool NativeVotes_RedrawClientVote(int client, bool revotes = true);
 
 /**
  * Retrieve the vote type
@@ -523,7 +523,7 @@ native bool:NativeVotes_RedrawClientVote(client, bool:revotes=true);
  * @return					The built in vote type
  * @error					Invalid Handle
  */
-native NativeVotesType:NativeVotes_GetType(Handle:vote);
+native NativeVotesType:NativeVotes_GetType(Handle vote);
 
 /**
  * Set the team this vote is for, or NATIVEVOTES_ALL_TEAMS for all teams.
@@ -535,7 +535,7 @@ native NativeVotesType:NativeVotes_GetType(Handle:vote);
  * @noreturn
  * @error					Invalid Handle
  */
-native NativeVotes_SetTeam(Handle:vote, team);
+native NativeVotes_SetTeam(Handle vote, team);
 
 /**
  * Retrieve the team this vote is for
@@ -544,7 +544,7 @@ native NativeVotes_SetTeam(Handle:vote, team);
  * @return					Team index or NATIVEVOTES_ALL_TEAMS for all teams.
  * @error					Invalid Handle
  */
-native NativeVotes_GetTeam(Handle:vote);
+native NativeVotes_GetTeam(Handle vote);
 
 /**
  * Set the client index of the player who initiated the vote.
@@ -557,7 +557,7 @@ native NativeVotes_GetTeam(Handle:vote);
  * @noreturn
  * @error					Invalid Handle
  */
-native NativeVotes_SetInitiator(Handle:vote, client);
+native NativeVotes_SetInitiator(Handle vote, int client);
 
 /**
  * Retrieve the client index of the player who initiated the vote or NATIVEVOTES_SERVER_INDEX if
@@ -567,7 +567,7 @@ native NativeVotes_SetInitiator(Handle:vote, client);
  * @return					Client index or NATIVEVOTES_SERVER_INDEX
  * @error					Invalid Handle
  */
-native NativeVotes_GetInitiator(Handle:vote);
+native NativeVotes_GetInitiator(Handle vote);
 
 /**
  * Broadcasts a vote to a list of clients.  The most selected item will be
@@ -584,7 +584,7 @@ native NativeVotes_GetInitiator(Handle:vote);
  * @return					True on success, false if a vote is already in progress.
  * @error					Invalid Handle, or a vote is already in progress.
  */
-native bool:NativeVotes_Display(Handle:vote, clients[], numClients, time);
+native bool NativeVotes_Display(Handle vote, clients[], numClients, time);
 
 /**
  * Sends a vote menu to all clients.  See NativeVotes_Display() for more information.
@@ -595,12 +595,12 @@ native bool:NativeVotes_Display(Handle:vote, clients[], numClients, time);
  *							in progress.
  * @error					Invalid Handle, or a vote is already in progress.
  */
-stock bool:NativeVotes_DisplayToAll(Handle:vote, time)
+stock bool NativeVotes_DisplayToAll(Handle vote, time)
 {
-	new total = 0;
-	decl players[MaxClients];
+	int total = 0;
+	char players[MaxClients];
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i))
 		{
@@ -622,14 +622,14 @@ stock bool:NativeVotes_DisplayToAll(Handle:vote, time)
  *							in progress.
  * @error					Invalid Handle, or a vote is already in progress.
  */
-stock bool:NativeVotes_DisplayToTeam(Handle:vote, team, time)
+stock bool NativeVotes_DisplayToTeam(Handle vote, team, time)
 {
 	NativeVotes_SetTeam(vote, team);
 
-	new total;
-	decl players[MaxClients];
+	int total;
+	char players[MaxClients];
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i) || (GetClientTeam(i) != team))
 		{
@@ -650,12 +650,12 @@ stock bool:NativeVotes_DisplayToTeam(Handle:vote, team, time)
  *							in progress.
  * @error					Invalid Handle, or a vote is already in progress.
  */
-stock bool:NativeVotes_DisplayToAllNonSpectators(Handle:vote, time)
+stock bool NativeVotes_DisplayToAllNonSpectators(Handle vote, time)
 {
-	new total;
-	decl players[MaxClients];
+	int total;
+	char players[MaxClients];
 
-	for (new i=1; i<=MaxClients; i++)
+	for (int i=1; i<=MaxClients; i++)
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i) || (GetClientTeam(i) < 2))
 		{
@@ -679,7 +679,7 @@ stock bool:NativeVotes_DisplayToAllNonSpectators(Handle:vote, time)
  * @param ...				Variable number of format parameters.
  * @noreturn
  */
-native NativeVotes_DisplayPass(Handle:vote, const String:details[]="");
+native NativeVotes_DisplayPass(Handle vote, const char[] details = "");
 
 /**
  * Display vote passed screen with custom text to a single user
@@ -694,7 +694,7 @@ native NativeVotes_DisplayPass(Handle:vote, const String:details[]="");
  * @param any				Variable number of format parameters
  * @noreturn
  */
-native NativeVotes_DisplayPassCustomToOne(Handle:vote, client, const String:format[], any:...);
+native NativeVotes_DisplayPassCustomToOne(Handle vote, int client, const char[] format, any...);
 
 /**
  * Display vote passed screen with custom text
@@ -708,11 +708,11 @@ native NativeVotes_DisplayPassCustomToOne(Handle:vote, client, const String:form
  * @param any				Variable number of format parameters
  * @noreturn
  */
-stock NativeVotes_DisplayPassCustom(Handle:vote, const String:format[], any:...)
+stock NativeVotes_DisplayPassCustom(Handle vote, const char[] format, any:...)
 {
-	decl String:buffer[192];
+	char buffer[192];
 
-	for (new i = 1; i <= MaxClients; ++i)
+	for (int i = 1; i <= MaxClients; ++i)
 	{
 		if (IsClientInGame(i))
 		{
@@ -737,7 +737,7 @@ stock NativeVotes_DisplayPassCustom(Handle:vote, const String:format[], any:...)
  * @param details			Normally the item that won the vote. Also used for custom vote winners
  * @noreturn
  */
-native NativeVotes_DisplayPassEx(Handle:vote, NativeVotesPassType:passType, const String:details[]="");
+native NativeVotes_DisplayPassEx(Handle vote, NativeVotesPassType passType, const char[] details = "");
 
 /**
  * Display failure screen.
@@ -749,7 +749,7 @@ native NativeVotes_DisplayPassEx(Handle:vote, NativeVotesPassType:passType, cons
  * @param reason			Vote failure reason from NativeVotesFailType enum
  * @noreturn
  */
-native NativeVotes_DisplayFail(Handle:vote, NativeVotesFailType:reason=NativeVotesFail_Generic);
+native NativeVotes_DisplayFail(Handle vote, NativeVotesFailType reason = NativeVotesFail_Generic);
 
 /**
  * Quick stock to determine whether voting is allowed.  This doesn't let you
@@ -759,7 +759,7 @@ native NativeVotes_DisplayFail(Handle:vote, NativeVotesFailType:reason=NativeVot
  * @return				True if voting is allowed, false if voting is in progress
  *						or the cooldown is active.
  */
-stock bool:NativeVotes_IsNewVoteAllowed()
+stock bool NativeVotes_IsNewVoteAllowed()
 {
 	if (NativeVotes_IsVoteInProgress() || NativeVotes_CheckVoteDelay() != 0)
 	{
@@ -783,7 +783,7 @@ stock bool:NativeVotes_IsNewVoteAllowed()
  * 						Plugin_Handled to return a blank VoteSetup usermessage
  * 						Plugin_Stop to prevent VoteSetup usermessage (not recommended)
  */
-//functag public Action:NativeVotes_CallVoteSetupHandler(client, NativeVotesType:voteTypes[]);
+//functag public Action NativeVotes_CallVoteSetupHandler(int client, NativeVotesType voteTypes[]);
 
 /**
  * Forward for "callvote" handling
@@ -798,7 +798,7 @@ stock bool:NativeVotes_IsNewVoteAllowed()
  * 						Plugin_Handled if you processed this vote type
  * 						Plugin_Stop to block the vote type (not recommended)
  */
-//functag public Action:NativeVotes_CallVoteHandler(client, NativeVotesType:voteType, const String:voteArgument[], target);
+//functag public Action NativeVotes_CallVoteHandler(int client, NativeVotesType voteType, const char[] voteArgument, int target);
 
 /**
  * Register a plugin as a vote manager.
@@ -808,7 +808,7 @@ stock bool:NativeVotes_IsNewVoteAllowed()
  * @param setupHandler	Handler to override the which vote types your server supports.  Only useful on TF2 and CS:GO.
  * @noreturn
  */
-//native NativeVotes_RegisterVoteManager(NativeVotes_CallVoteHandler:callHandler, NativeVotes_CallVoteSetupHandler:setupHandler=INVALID_FUNCTION);
+//native NativeVotes_RegisterVoteManager(NativeVotes_CallVoteHandler callHandler, NativeVotes_CallVoteSetupHandler setupHandler = INVALID_FUNCTION);
 
 /**
  *  Send a call vote fail screen to a user
@@ -820,7 +820,7 @@ stock bool:NativeVotes_IsNewVoteAllowed()
  * @param time			For NativeVotesCallFail_Recent, the number of seconds until the vote
  * 						can be called again
  */
-native NativeVotes_DisplayCallVoteFail(client, NativeVotesCallFailType:reason, time);
+native NativeVotes_DisplayCallVoteFail(int client, NativeVotesCallFailType reason, time);
 
 /**
  * Redraws the vote title from inside a MenuAction_Display callback
@@ -830,7 +830,7 @@ native NativeVotes_DisplayCallVoteFail(client, NativeVotesCallFailType:reason, t
  * @error 				If called from outside MenuAction_Display
  * @return				Plugin_Changed if the change is allowed, Plugin_Continue if it isn't.
  */
-native Action:NativeVotes_RedrawVoteTitle(const String:text[]);
+native Action NativeVotes_RedrawVoteTitle(const char[] text);
 
 /**
  * Redraws the vote text from inside a MenuAction_DisplayItem callback.
@@ -840,7 +840,7 @@ native Action:NativeVotes_RedrawVoteTitle(const String:text[]);
  * @error 				If called from outside MenuAction_DisplayItem
  * @return				Plugin_Changed if the change is allowed, Plugin_Continue if it isn't.
  */
-native Action:NativeVotes_RedrawVoteItem(const String:text[]);
+native Action NativeVotes_RedrawVoteItem(const char[] text);
 
 /**
  * Retrieves voting information from MenuAction_VoteEnd.
@@ -850,7 +850,7 @@ native Action:NativeVotes_RedrawVoteItem(const String:text[]);
  * @param totalVotes	Number of total votes received.
  * @noreturn
  */
-stock NativeVotes_GetInfo(param2, &winningVotes, &totalVotes)
+stock NativeVotes_GetInfo(int param2, bool &winningVotes, bool &totalVotes)
 {
 	winningVotes = param2 & 0xFFFF;
 	totalVotes = param2 >> 16;
@@ -859,7 +859,7 @@ stock NativeVotes_GetInfo(param2, &winningVotes, &totalVotes)
 /**
  * Do not edit below this line!
  */
-public SharedPlugin:__pl_nativevotes =
+public SharedPlugin __pl_nativevotes =
 {
 	name = "nativevotes",
 	file = "nativevotes.smx",
@@ -870,7 +870,7 @@ public SharedPlugin:__pl_nativevotes =
 #endif
 };
 
-public __pl_nativevotes_SetNTVOptional()
+public void __pl_nativevotes_SetNTVOptional()
 {
 	MarkNativeAsOptional("NativeVotes_IsVoteTypeSupported");
 	MarkNativeAsOptional("NativeVotes_Create");
