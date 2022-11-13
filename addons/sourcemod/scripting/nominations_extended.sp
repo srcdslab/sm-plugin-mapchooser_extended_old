@@ -38,8 +38,9 @@
 #include <sourcemod>
 #include <mapchooser>
 #include <mapchooser_extended>
-#include <multicolors>
 #include <basecomm>
+
+#include <multicolors>
 
 #define MCE_VERSION "1.3.1"
 
