@@ -1398,6 +1398,7 @@ public void Handler_MapVoteFinished(Handle menu,
 				mapList.GetString(i, buffer, sizeof(buffer)); // Take the map name at index i in small buffer
 				Format(bigBuffer, sizeof(bigBuffer), "%s\n- %s", bigBuffer, buffer); // Add small buffer to the bigBuffer
 			}
+			delete mapList;
 
 			LogAction(-1, -1, "[MCE] The top maps had the same number of votes. A revote is needed! \nList of maps : \n%s", bigBuffer[1]);
 			CPrintToChatAll("{green}[MCE]{default} %t", "Tie Vote", GetArraySize(mapList));
@@ -1438,6 +1439,7 @@ public void Handler_MapVoteFinished(Handle menu,
 				mapList.GetString(i, buffer, sizeof(buffer)); // Take the map name at index i in small buffer
 				Format(bigBuffer, sizeof(bigBuffer), "%s\n- %s", bigBuffer, buffer); // Add small buffer to the bigBuffer
 			}
+			delete mapList;
 
 			LogAction(-1, -1, "[MCE] No map has received more than \"%d\"\%% of the vote.\nA revote is needed! \nMapList : \n%s", required_percent, bigBuffer[1]);
 			CPrintToChatAll("{green}[MCE]{default} %t", "Revote Is Needed", required_percent);
