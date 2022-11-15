@@ -54,7 +54,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MCE_VERSION "1.3.1"
+#define MCE_VERSION "1.3.2"
 
 enum RoundCounting
 {
@@ -622,7 +622,7 @@ public Action Command_SetNextmap(int client, int args)
 	}
 
 	CShowActivity(client, "%t", "Changed Next Map", map);
-	LogAction(client, -1, "\"%L\" changed nextmap to \"%s\"", client, map);
+	LogAction(client, -1, "[MCE] \"%L\" changed nextmap to \"%s\"", client, map);
 
 	SetNextMap(map);
 	g_MapVoteCompleted = true;
@@ -981,9 +981,15 @@ public void Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcas
 public Action Command_Mapvote(int client, int args)
 {
 	if (client == 0)
+	{
   		ShowActivity2(client, "[MCE] ", "%t", "Initiated Vote Map");
+		LogAction(-1, -1, "[MCE] Initiated a map vote because outside request.");
+	}
 	else
+	{
   		CShowActivity2(client, "{green}[MCE]{default} ", "%t", "Initiated Vote Map");
+		LogAction(client, -1, "[MCE] \"%L\" Initiated a map vote.", client);
+	}
 
 	SetupWarningTimer(WarningType_Vote, MapChange_MapEnd, INVALID_HANDLE, true);
 
@@ -1075,8 +1081,8 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 	SetVoteResultCallback(g_VoteMenu, Handler_MapVoteFinished);
 
 	/* Call OnMapVoteStarted() Forward */
-//	Call_StartForward(g_MapVoteStartedForward);
-//	Call_Finish();
+	//	Call_StartForward(g_MapVoteStartedForward);
+	//	Call_Finish();
 
 	/**
 	 * TODO: Make a proper decision on when to clear the nominations list.
@@ -1304,7 +1310,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 		}
 
 		CPrintToChatAll("{green}[MCE]{default} %t", "Current Map Extended", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
-		LogAction(-1, -1, "Voting for next map has finished. The current map has been extended.");
+		LogAction(-1, -1, "[MCE] Voting for next map has finished. \nThe current map has been extended. (Received \"%d\"\%% of %d votes) \nAvailable Extends: %d", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes, GetConVarInt(g_Cvar_Extend) - g_Extends);
 		CPrintToChatAll("{green}[MCE]{default} Available Extends:{green} %d", GetConVarInt(g_Cvar_Extend) - g_Extends);
 
 		// We extended, so we'll have to vote again.
@@ -1316,7 +1322,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 	else if(strcmp(map, VOTE_DONTCHANGE, false) == 0)
 	{
 		CPrintToChatAll("{green}[MCE]{default} %t", "Current Map Stays", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
-		LogAction(-1, -1, "Voting for next map has finished. 'No Change' was the winner");
+		LogAction(-1, -1, "[MCE] Current map continues! The Vote has spoken! (Received \"%d\"\%% of %d votes)", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 
 		g_RunoffCount = 0;
 		g_HasVoteStarted = false;
@@ -1345,7 +1351,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 		g_MapVoteCompleted = true;
 
 		CPrintToChatAll("{green}[MCE]{default} %t", "Nextmap Voting Finished", map, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
-		LogAction(-1, -1, "Voting for next map has finished. Nextmap: %s.", map);
+		LogAction(-1, -1, "[MCE] Voting for next map has finished. \nNextmap: %s. (Received \"%d\"\%% of %d votes)", map, RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 	}
 }
 
@@ -1369,8 +1375,7 @@ public void Handler_MapVoteFinished(Handle menu,
 			g_HasVoteStarted = false;
 
 			//Revote is needed
-			int arraySize = ByteCountToCells(PLATFORM_MAX_PATH);
-			Handle mapList = CreateArray(arraySize);
+			ArrayList mapList = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH + 1));
 
 			for(int i = 0; i < num_items; i++)
 			{
@@ -1385,6 +1390,18 @@ public void Handler_MapVoteFinished(Handle menu,
 					break;
 			}
 
+			char buffer[PLATFORM_MAX_PATH + 1], bigBuffer[PLATFORM_MAX_PATH * 8 + 1];
+			int mapListSize = mapList.Length;
+
+			mapList.GetString(0, buffer, sizeof(buffer));
+			for (int i; i < mapListSize; i++)
+			{
+				mapList.GetString(i, buffer, sizeof(buffer)); // Take the map name at index i in small buffer
+				Format(bigBuffer, sizeof(bigBuffer), "%s\n- %s", bigBuffer, buffer); // Add small buffer to the bigBuffer
+			}
+			delete mapList;
+
+			LogAction(-1, -1, "[MCE] The top maps had the same number of votes. A revote is needed! \nList of maps : \n%s", bigBuffer[1]);
 			CPrintToChatAll("{green}[MCE]{default} %t", "Tie Vote", GetArraySize(mapList));
 			SetupWarningTimer(WarningType_Revote, view_as<MapChange>(g_ChangeTime), mapList);
 			return;
@@ -1394,8 +1411,7 @@ public void Handler_MapVoteFinished(Handle menu,
 			g_HasVoteStarted = false;
 
 			//Revote is needed
-			int arraySize = ByteCountToCells(PLATFORM_MAX_PATH);
-			Handle mapList = CreateArray(arraySize);
+			ArrayList mapList = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH + 1));
 
 			static char map1[PLATFORM_MAX_PATH];
 			GetMapItem(menu, item_info[0][VOTEINFO_ITEM_INDEX], map1, PLATFORM_MAX_PATH);
@@ -1409,12 +1425,24 @@ public void Handler_MapVoteFinished(Handle menu,
 				{
 					static char map[PLATFORM_MAX_PATH];
 					GetMapItem(menu, item_info[i][VOTEINFO_ITEM_INDEX], map, PLATFORM_MAX_PATH);
-					PushArrayString(mapList, map);
+					mapList.PushString(map);
 				}
 				else
 					break;
 			}
 
+			char buffer[PLATFORM_MAX_PATH + 1], bigBuffer[PLATFORM_MAX_PATH * 8 + 1];
+			int mapListSize = mapList.Length;
+
+			mapList.GetString(0, buffer, sizeof(buffer));
+			for (int i; i < mapListSize; i++)
+			{
+				mapList.GetString(i, buffer, sizeof(buffer)); // Take the map name at index i in small buffer
+				Format(bigBuffer, sizeof(bigBuffer), "%s\n- %s", bigBuffer, buffer); // Add small buffer to the bigBuffer
+			}
+			delete mapList;
+
+			LogAction(-1, -1, "[MCE] No map has received more than \"%d\"\%% of the vote.\nA revote is needed! \nMapList : \n%s", required_percent, bigBuffer[1]);
 			CPrintToChatAll("{green}[MCE]{default} %t", "Revote Is Needed", required_percent);
 			SetupWarningTimer(WarningType_Revote, view_as<MapChange>(g_ChangeTime), mapList);
 			return;
@@ -1524,8 +1552,11 @@ public int Handler_MapVoteMenu(Handle menu, MenuAction action, int param1, int p
 				while(strcmp(map, VOTE_EXTEND, false) == 0);
 
 				SetNextMap(map);
+				LogAction(-1, -1, "[MCE] No votes has been receive. Pickup a random map. Nextmap is : %s", map);
 				g_MapVoteCompleted = true;
 			}
+			else
+				LogAction(-1, -1, "[MCE] No votes has been receive.");
 
 			g_HasVoteStarted = false;
 		}
@@ -1858,7 +1889,7 @@ public int Native_InitiateVote(Handle plugin, int numParams)
 	MapChange when = view_as<MapChange>(GetNativeCell(1));
 	Handle inputarray = view_as<Handle>(GetNativeCell(2));
 
-	LogAction(-1, -1, "Starting map vote because outside request");
+	LogAction(-1, -1, "[MCE] Starting map vote because players RTV.");
 
 	SetupWarningTimer(WarningType_Vote, when, inputarray);
 	//InitiateVote(when, inputarray);
@@ -1948,7 +1979,7 @@ stock void SetupWarningTimer(WarningType type, MapChange when=MapChange_MapEnd, 
 			forwardVote = g_MapVoteWarningStartForward;
 			cvarTime = g_Cvar_WarningTime;
 			strcopy(translationKey, sizeof(translationKey), "Vote Warning");
-
+			LogAction(-1, -1, "[MCE] Voting for next map has started.");
 		}
 
 		case WarningType_Revote:
@@ -1956,7 +1987,7 @@ stock void SetupWarningTimer(WarningType type, MapChange when=MapChange_MapEnd, 
 			forwardVote = g_MapVoteRunoffStartForward;
 			cvarTime = g_Cvar_RunOffWarningTime;
 			strcopy(translationKey, sizeof(translationKey), "Revote Warning");
-
+			LogAction(-1, -1, "[MCE] Revote for next map has started.");
 		}
 	}
 
