@@ -42,7 +42,7 @@
 #include <multicolors>
 #tryinclude <sourcecomms>
 
-#define NE_VERSION "1.3.201"
+#define NE_VERSION "1.3.2"
 
 public Plugin myinfo =
 {
@@ -139,6 +139,7 @@ public APLRes AskPluginLoad2(Handle hThis, bool bLate, char[] err, int iErrLen)
 	CreateNative("PushMapsIntoNominationPool", Native_PushMapsIntoNominationPool);
 	CreateNative("RemoveMapFromNominationPool", Native_RemoveMapFromNominationPool);
 	CreateNative("RemoveMapsFromNominationPool", Native_RemoveMapsFromNominationPool);
+	CreateNative("ToggleNominations", Native_ToggleNominations);
 
 	return APLRes_Success;
 }
@@ -290,7 +291,7 @@ public Action Command_Addmap(int client, int args)
 
 	if(!IsMapValid(mapname))
 	{
-		CReplyToCommand(client, "%t", "Map was not found", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
 		AttemptAdminNominate(client, mapname);
 		return Plugin_Handled;
 	}
@@ -361,14 +362,14 @@ public Action Command_Addmap(int client, int args)
 	if(result > Nominate_Replaced)
 	{
 		/* We assume already in vote is the casue because the maplist does a Map Validity check and we forced, so it can't be full */
-		CReplyToCommand(client, "%t", "Map Already In Vote", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map Already In Vote", mapname);
 
 		return Plugin_Handled;
 	}
 
 	SetTrieValue(g_mapTrie, mapname, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
 
-	CReplyToCommand(client, "%t", "Map Inserted", mapname);
+	CReplyToCommand(client, "{green}[NE]{default} %t", "Map Inserted", mapname);
 	LogAction(client, -1, "\"%L\" inserted map \"%s\".", client, mapname);
 
 	CPrintToChatAll("{green}[NE]{default} %N has inserted %s into nominations", client, mapname);
@@ -396,19 +397,19 @@ public Action Command_Removemap(int client, int args)
 	// int status;
 	if(/*!GetTrieValue(g_mapTrie, mapname, status)*/!IsMapValid(mapname))
 	{
-		CReplyToCommand(client, "%t", "Map was not found", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
 		AttemptAdminRemoveMap(client, mapname);
 		return Plugin_Handled;
 	}
 
 	if(!RemoveNominationByMap(mapname))
 	{
-		CReplyToCommand(client, "This map isn't nominated.", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} This map isn't nominated.", mapname);
 
 		return Plugin_Handled;
 	}
 
-	CReplyToCommand(client, "Map '%s' removed from the nominations list.", mapname);
+	CReplyToCommand(client, "{green}[NE]{default} Map '%s' removed from the nominations list.", mapname);
 	LogAction(client, -1, "\"%L\" removed map \"%s\" from nominations.", client, mapname);
 
 	CPrintToChatAll("{green}[NE]{default} %N has removed %s from nominations", client, mapname);
@@ -445,10 +446,7 @@ public Action Command_AddExclude(int client, int args)
 	int status;
 	if(!GetTrieValue(g_mapTrie, mapname, status))
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[NE] %t", "Map was not found", mapname);
-		else
-			CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
 		return Plugin_Handled;
 	}
 
@@ -507,23 +505,27 @@ public Action Command_AddExcludeTime(int client, int args)
 
 public Action Timer_DelayNominate(Handle timer)
 {
+	if (!g_NEAllowed)
+		CPrintToChatAll("{green}[NE]{default} Map nominations are available now!");
 	g_NEAllowed = true;
 	g_NominationDelay = true;
-	CPrintToChatAll("{green}[NE]{default} Maps Nominations is available now!");
+	return Plugin_Continue;
 }
 
 public Action Command_DisableNE(int client)
 {
 	g_NEAllowed = false;
-	CPrintToChatAll("{green}[NE]{default} Maps Nominations is now locked.");
+	if (!g_NEAllowed)
+		CPrintToChatAll("{green}[NE]{default} Map nominations are restricted.");
+	return Plugin_Handled;
 }
 
 public Action Command_EnableNE(int client)
 {
 	g_NEAllowed = true;
 	g_NominationDelay = true;
-	CPrintToChatAll("{green}[NE]{default} Maps Nominations is available now!");
-	
+	CPrintToChatAll("{green}[NE]{default} Map nominations are available now!");
+	return Plugin_Handled;
 }
 
 public Action Command_Say(int client, int args)
@@ -552,7 +554,7 @@ public Action Command_Say(int client, int args)
 				CReplyToCommand(client, "{green}[NE]{default} Nominations will be unlocked in %d seconds.", g_NominationDelay - GetTime());
 			if(!g_NEAllowed)
 			{
-				CReplyToCommand(client, "{green}[NE]{default} Map Nominations is currently locked.");
+				CReplyToCommand(client, "{green}[NE]{default} Map nominations are currently locked.");
 				return Plugin_Handled;
 			}
 			else
@@ -576,18 +578,16 @@ public Action Command_Nominate(int client, int args)
 		return Plugin_Handled;
 	}
 
+	if(!g_NEAllowed)
+	{
+		CReplyToCommand(client, "{green}[NE]{default} Map Nominations are currently locked.");
+		return Plugin_Handled;
+	}
+	
 	if(args == 0)
 	{
-		if(!g_NEAllowed)
-		{
-			CReplyToCommand(client, "{green}[NE]{default} Map Nominations is currently locked.");
-			return Plugin_Handled;
-		}
-		else
-		{
-			AttemptNominate(client);
-			return Plugin_Handled;
-		}
+		AttemptNominate(client);
+		return Plugin_Handled;
 	}
 
 	if(g_Player_NominationDelay[client] > GetTime())
@@ -603,17 +603,9 @@ public Action Command_Nominate(int client, int args)
 	int status;
 	if(!GetTrieValue(g_mapTrie, mapname, status))
 	{
-		if(!g_NEAllowed)
-		{
-			CReplyToCommand(client, "{green}[NE]{default} Map Nominations is currently locked.");
-			return Plugin_Handled;
-		}
-		else
-		{
-			CPrintToChat(client, "%t", "Map was not found", mapname);
-			AttemptNominate(client, mapname);
-			return Plugin_Handled;
-		}
+		CPrintToChat(client, "{green}[NE]{default} %t", "Map was not found", mapname);
+		AttemptNominate(client, mapname);
+		return Plugin_Handled;
 	}
 
 	bool RestrictionsActive = AreRestrictionsActive();
@@ -678,43 +670,35 @@ public Action Command_Nominate(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if(!g_NEAllowed)
+	NominateResult result = NominateMap(mapname, false, client);
+
+	if(result > Nominate_Replaced)
 	{
-		CReplyToCommand(client, "{green}[NE]{default} Map Nominations is currently locked.");
+		if(result == Nominate_AlreadyInVote)
+			CPrintToChat(client, "{green}[NE]{default} %t", "Map Already In Vote", mapname);
+		else if(result == Nominate_VoteFull)
+			CPrintToChat(client, "{green}[NE]{default} %t", "Max Nominations");
+
 		return Plugin_Handled;
 	}
-	else
-	{
-		NominateResult result = NominateMap(mapname, false, client);
 
-		if(result > Nominate_Replaced)
-		{
-			if(result == Nominate_AlreadyInVote)
-				CPrintToChat(client, "{green}[NE]{default} %t", "Map Already In Vote", mapname);
-			else if(result == Nominate_VoteFull)
-				CPrintToChat(client, "{green}[NE]{default} %t", "Max Nominations");
+	/* Map was nominated! - Disable the menu item and update the trie */
+	
+	SetTrieValue(g_mapTrie, mapname, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
 
-			return Plugin_Handled;
-		}
+	static char name[MAX_NAME_LENGTH];
+	GetClientName(client, name, sizeof(name));
 
-		/* Map was nominated! - Disable the menu item and update the trie */
-		
-		SetTrieValue(g_mapTrie, mapname, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
+	if(result == Nominate_Added)
+		CPrintToChatAll("{green}[NE]{default} %t", "Map Nominated", name, mapname);
+	else if(result == Nominate_Replaced)
+		CPrintToChatAll("{green}[NE]{default} %t", "Map Nomination Changed", name, mapname);
 
-		static char name[MAX_NAME_LENGTH];
-		GetClientName(client, name, sizeof(name));
+	LogMessage("%s nominated %s", name, mapname);
 
-		if(result == Nominate_Added)
-			CPrintToChatAll("{green}[NE]{default} %t", "Map Nominated", name, mapname);
-		else if(result == Nominate_Replaced)
-			CPrintToChatAll("{green}[NE]{default} %t", "Map Nomination Changed", name, mapname);
+	g_Player_NominationDelay[client] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
 
-		LogMessage("%s nominated %s", name, mapname);
-
-		g_Player_NominationDelay[client] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
-
-		return Plugin_Continue;
-	}
+	return Plugin_Continue;
 }
 
 public Action Command_NominateList(int client, int args)
@@ -795,7 +779,7 @@ Action AttemptNominate(int client, const char[] filter = "")
 	
 	if(!g_NEAllowed)
 	{
-		CReplyToCommand(client, "{green}[NE]{default} Map Nominations is currently locked.");
+		CReplyToCommand(client, "{green}[NE]{default} Map nominations is currently locked.");
 		return Plugin_Handled;
 	}
 
@@ -833,7 +817,7 @@ Action AttemptAdminNominate(int client, const char[] filter = "")
 
 	if(!g_NEAllowed)
 	{
-		CReplyToCommand(client, "{green}[NE]{default} Map Nominations is currently locked.");
+		CReplyToCommand(client, "{green}[NE]{default} Map nominations is currently locked.");
 		return Plugin_Handled;
 	}
 
@@ -970,6 +954,12 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 		}
 		case MenuAction_Select:
 		{
+			if(!g_NEAllowed)
+			{
+				CPrintToChat(param1, "{green}[NE]{default} Map Nominations is currently locked.");
+				return 0;
+			}
+	
 			if(g_Player_NominationDelay[param1] > GetTime())
 			{
 				CPrintToChat(param1, "{green}[NE]{default} Please wait %d seconds before you can nominate again", g_Player_NominationDelay[param1] - GetTime());
@@ -1313,11 +1303,11 @@ public int Handler_AdminRemoveMapMenu(Menu menu, MenuAction action, int param1, 
 
 			if(!RemoveNominationByMap(map))
 			{
-				CReplyToCommand(param1, "This map isn't nominated.", map);
+				CReplyToCommand(param1, "{green}[NE]{default} This map isn't nominated.", map);
 				return 0;
 			}
 
-			CReplyToCommand(param1, "Map '%s' removed from the nominations list.", map);
+			CReplyToCommand(param1, "{green}[NE]{default} Map '%s' removed from the nominations list.", map);
 			LogAction(param1, -1, "\"%L\" removed map \"%s\" from nominations.", param1, map);
 
 			CPrintToChatAll("{green}[NE]{default} %N has removed %s from nominations", param1, map);
@@ -1411,6 +1401,18 @@ public int Native_RemoveMapsFromNominationPool(Handle plugin, int numArgs)
 	UpdateMapMenus();
 
 	return 0;
+}
+
+public int Native_ToggleNominations(Handle plugin, int numArgs)
+{
+	bool toggle = GetNativeCell(1);
+
+	if(toggle)
+		Command_DisableNE(0);
+	else
+		Command_EnableNE(0);
+		
+	return 1;
 }
 
 stock int GetVIPTimeRestriction()
