@@ -8,6 +8,7 @@ native int PushMapIntoNominationPool(char[] map);
 native int PushMapsIntoNominationPool(ArrayList maps);
 native int RemoveMapFromNominationPool(char[] map);
 native int RemoveMapsFromNominationPool(ArrayList maps);
+native void ToggleNominations(bool toggle);
 
 public SharedPlugin __pl_nominations_extended =
 {
