@@ -23,6 +23,13 @@ project:
       unpack:
       - source: /addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
+        
+    - name: sourcecomms
+      type: git
+      repo: https://github.com/srcdslab/sourcebans-pp
+      unpack:
+      - source: game/addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
 
     - name: playermanager
       type: git
