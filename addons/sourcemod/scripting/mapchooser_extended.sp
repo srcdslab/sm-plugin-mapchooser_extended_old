@@ -43,6 +43,9 @@
 	#define assert_msg(%1,%2)
 #endif
 
+#undef REQUIRE_PLUGIN
+#tryinclude <nominations_extended>
+#define REQUIRE_PLUGIN
 #include <sourcemod>
 #include <mapchooser>
 #include <mapchooser_extended>
@@ -113,6 +116,7 @@ ConVar g_Cvar_Extend;
 ConVar g_Cvar_DontChange;
 ConVar g_Cvar_EndOfMapVote;
 ConVar g_Cvar_VoteDuration;
+ConVar g_Cvar_RandomStartTime;
 
 Handle g_VoteTimer = INVALID_HANDLE;
 Handle g_RetryTimer = INVALID_HANDLE;
@@ -238,6 +242,7 @@ public void OnPluginStart()
 	g_Cvar_EndOfMapVote = CreateConVar("mce_endvote", "1", "Specifies if MapChooser should run an end of map vote", _, true, 0.0, true, 1.0);
 
 	g_Cvar_StartTime = CreateConVar("mce_starttime", "10.0", "Specifies when to start the vote based on time remaining.", _, true, 1.0);
+	g_Cvar_RandomStartTime = CreateConVar("mce_random_starttime", "30.0", "The max interval time to add up to the original interval time for map vote in seconds", _, true, 1.0, true, 180.0);
 	g_Cvar_StartRounds = CreateConVar("mce_startround", "2.0", "Specifies when to start the vote based on rounds remaining. Use 0 on DoD:S, CS:S, and TF2 to start vote during bonus round time", _, true, 0.0);
 	g_Cvar_StartFrags = CreateConVar("mce_startfrags", "5.0", "Specifies when to start the vote base on frags remaining.", _, true, 1.0);
 	g_Cvar_ExtendTimeStep = CreateConVar("mce_extend_timestep", "15", "Specifies how much many more minutes each extension makes", _, true, 5.0);
@@ -263,8 +268,10 @@ public void OnPluginStart()
 	g_Cvar_StartTimePercent = CreateConVar("mce_start_percent", "35.0", "Specifies when to start the vote based on percents.", _, true, 0.0, true, 100.0);
 	g_Cvar_StartTimePercentEnable = CreateConVar("mce_start_percent_enable", "0", "Enable or Disable percentage calculations when to start vote.", _, true, 0.0, true, 1.0);
 	g_Cvar_WarningTime = CreateConVar("mce_warningtime", "15.0", "Warning time in seconds.", _, true, 0.0, true, 60.0);
+#if defined _nominations_extended_included_
 	g_Cvar_LockNominationsAtWarning = CreateConVar("mce_locknominationswarning", "1", "Lock nominations when the warning start for vote", _, true, 0.0, true, 1.0);
-	g_Cvar_TimerUnlockNoms = CreateConVar("mce_locknomations_timer", "15.0", "Unlock nominations after a vote. Time in seconds.", _, true, 0.0, true, 60.0);
+	g_Cvar_TimerUnlockNoms = CreateConVar("mce_locknominations_timer", "15.0", "Unlock nominations after a vote. Time in seconds.", _, true, 0.0, true, 60.0);
+#endif
 	g_Cvar_RunOffWarningTime = CreateConVar("mce_runoffvotewarningtime", "5.0", "Warning time for runoff vote in seconds.", _, true, 0.0, true, 30.0);
 	g_Cvar_TimerLocation = CreateConVar("mce_warningtimerlocation", "0", "Location for the warning timer text. 0 is HintBox, 1 is Center text, 2 is Chat.  Defaults to HintBox.", _, true, 0.0, true, 2.0);
 	g_Cvar_MarkCustomMaps = CreateConVar("mce_markcustommaps", "1", "Mark custom maps in the vote list. 0 = Disabled, 1 = Mark with *, 2 = Mark with phrase.", _, true, 0.0, true, 2.0);
@@ -277,6 +284,7 @@ public void OnPluginStart()
 	g_Cvar_NoRestrictionTimeframeMinTime = CreateConVar("mce_no_restriction_timeframe_mintime", "0100", "Start of the timeframe where all nomination restrictions and cooldowns are disabled (Format: HHMM)", _, true, 0000.0, true, 2359.0);
 	g_Cvar_NoRestrictionTimeframeMaxTime = CreateConVar("mce_no_restriction_timeframe_maxtime", "0700", "End of the timeframe where all nomination restrictions and cooldowns are disabled (Format: HHMM)", _, true, 0000.0, true, 2359.0);
 
+	
 	RegAdminCmd("sm_mapvote", Command_Mapvote, ADMFLAG_CHANGEMAP, "sm_mapvote - Forces MapChooser to attempt to run a map vote now.");
 	RegAdminCmd("sm_setnextmap", Command_SetNextmap, ADMFLAG_CHANGEMAP, "sm_setnextmap <map>");
 
@@ -685,7 +693,10 @@ void SetupTimeleftTimer()
 				}
 
 				//g_VoteTimer = CreateTimer(float(time - startTime), Timer_StartMapVoteTimer_StartMapVote, _, TIMER_FLAG_NO_MAPCHANGE);
-				g_VoteTimer = CreateTimer(float(time - startTime), Timer_StartWarningTimer, _, TIMER_FLAG_NO_MAPCHANGE);
+				float interval = float((time - startTime));
+				float random = GetRandomFloat(interval, (interval + g_Cvar_RandomStartTime.FloatValue));
+				
+				g_VoteTimer = CreateTimer(random, Timer_StartWarningTimer, _, TIMER_FLAG_NO_MAPCHANGE);
 			}
 		}
 	}
@@ -985,16 +996,8 @@ public void Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcas
 
 public Action Command_Mapvote(int client, int args)
 {
-	if (client == 0)
-	{
-  		ShowActivity2(client, "[MCE] ", "%t", "Initiated Vote Map");
-		LogAction(-1, -1, "[MCE] Initiated a map vote because outside request.");
-	}
-	else
-	{
-  		CShowActivity2(client, "{green}[MCE]{default} ", "%t", "Initiated Vote Map");
-		LogAction(client, -1, "[MCE] \"%L\" Initiated a map vote.", client);
-	}
+	CShowActivity2(client, "{green}[MCE]{olive} ", "{default}%t", "Initiated Vote Map");
+	LogAction(client, -1, "[MCE] \"%L\" Initiated a map vote.", client);
 
 	SetupWarningTimer(WarningType_Vote, MapChange_MapEnd, INVALID_HANDLE, true);
 
@@ -1336,6 +1339,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 		CPrintToChatAll("{green}[MCE]{default} %t", "Current Map Extended", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 		LogAction(-1, -1, "[MCE] Voting for next map has finished. \nThe current map has been extended. (Received \"%d\"\%% of %d votes) \nAvailable Extends: %d", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes, GetConVarInt(g_Cvar_Extend) - g_Extends);
 		CPrintToChatAll("{green}[MCE]{default} Available Extends:{green} %d", GetConVarInt(g_Cvar_Extend) - g_Extends);
+	#if defined _nominations_extended_included_
 		if(g_Cvar_LockNominationsAtWarning.IntValue > 0)
 		{
 			if(g_NominationsTimer != INVALID_HANDLE)
@@ -1346,6 +1350,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 
 			g_NominationsTimer = CreateTimer(GetConVarFloat(g_Cvar_TimerUnlockNoms), UnlockNominations, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
 		}
+	#endif
 
 		// We extended, so we'll have to vote again.
 		g_RunoffCount = 0;
@@ -1358,6 +1363,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 		CPrintToChatAll("{green}[MCE]{default} %t", "Current Map Stays", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 		LogAction(-1, -1, "[MCE] Current map continues! The Vote has spoken! (Received \"%d\"\%% of %d votes)", RoundToFloor(float(item_info[0][VOTEINFO_ITEM_VOTES])/float(num_votes)*100.0), num_votes);
 
+	#if defined _nominations_extended_included_
 		if(g_Cvar_LockNominationsAtWarning.IntValue > 0)
 		{
 			if(g_NominationsTimer != INVALID_HANDLE)
@@ -1368,6 +1374,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 
 			g_NominationsTimer = CreateTimer(GetConVarFloat(g_Cvar_TimerUnlockNoms), UnlockNominations, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
 		}
+	#endif
 
 		g_RunoffCount = 0;
 		g_HasVoteStarted = false;
@@ -1624,17 +1631,19 @@ bool RemoveStringFromArray(Handle array, char[] str)
 
 	return false;
 }
-
+#if defined _nominations_extended_included_
 public Action UnlockNominations(Handle timer)
 {
-	ServerCommand("sm_nominate_force_unlock");
+	ToggleNominations(false);
 	return Plugin_Continue;
 }
 
 void LockNominations()
 {
-	ServerCommand("sm_nominate_force_lock");
+	ToggleNominations(true);
 }
+#endif
+
 void CreateNextVote()
 {
 	assert(g_NextMapList)
@@ -2001,8 +2010,10 @@ stock void SetupWarningTimer(WarningType type, MapChange when=MapChange_MapEnd, 
 
 	g_WarningInProgress = true;
 
+#if defined _nominations_extended_included_
 	if(g_Cvar_LockNominationsAtWarning.IntValue > 0)
 		LockNominations();
+#endif
 
 	Handle forwardVote;
 	Handle cvarTime;
@@ -2040,8 +2051,6 @@ stock void SetupWarningTimer(WarningType type, MapChange when=MapChange_MapEnd, 
 	WritePackCell(data, view_as<int>(when));
 	WritePackCell(data, view_as<int>(mapList));
 	ResetPack(data);
-
-	delete mapList;
 }
 
 stock void InitializeOfficialMapList()
