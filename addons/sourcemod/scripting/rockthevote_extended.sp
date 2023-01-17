@@ -73,7 +73,7 @@ int g_VotesNeeded = 0;			// Necessary votes before map vote begins. (voters * pe
 bool g_Voted[MAXPLAYERS+1] = {false, ...};
 
 bool g_InChange = false;
-Handle g_hDelayRTVTimer;
+Handle g_hDelayRTVTimer = INVALID_HANDLE;
 
 public void OnPluginStart()
 {
@@ -271,9 +271,10 @@ void AttemptRTV(int client)
 
 public Action Timer_DelayRTV(Handle timer)
 {
-	g_hDelayRTVTimer = null;
+	g_hDelayRTVTimer = INVALID_HANDLE;
 	g_RTVAllowed = true;
 	CPrintToChatAll("{green}[RTVE]{default} RockTheVote is available now!");
+	return Plugin_Continue;
 }
 
 void StartRTV()
@@ -311,7 +312,10 @@ void StartRTV()
 
 		g_RTVAllowed = false;
 
-		delete g_hDelayRTVTimer;
+		if (g_hDelayRTVTimer != INVALID_HANDLE)
+		{
+			delete g_hDelayRTVTimer;
+		}
 		g_hDelayRTVTimer = CreateTimer(g_Cvar_Interval.FloatValue, Timer_DelayRTV, _, TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
@@ -373,7 +377,10 @@ public Action Command_DisableRTV(int client, int args)
 	LogAction(client, -1, "\"%L\" Disabled RockTheVote.", client);
 	
 	g_RTVAllowed = false;
-	delete g_hDelayRTVTimer;
+	if (g_hDelayRTVTimer != INVALID_HANDLE)
+	{
+		delete g_hDelayRTVTimer;
+	}
 
 	return Plugin_Handled;
 }
