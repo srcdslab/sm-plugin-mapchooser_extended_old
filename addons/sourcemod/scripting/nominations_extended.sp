@@ -153,6 +153,7 @@ public void OnAllPluginsLoaded()
 
 public void OnMapEnd()
 {
+	g_hDelayNominate = null;
 	g_bNEAllowed = false;
 }
 
@@ -195,6 +196,7 @@ public void OnConfigsExecuted()
 	}
 
 	g_bNEAllowed = false;
+	delete g_hDelayNominate;
 
 	g_hDelayNominate = CreateTimer(g_Cvar_InitialDelay.FloatValue, Timer_DelayNominate, _, TIMER_FLAG_NO_MAPCHANGE);
 
@@ -506,19 +508,23 @@ public Action Command_AddExcludeTime(int client, int args)
 
 public Action Timer_DelayNominate(Handle timer)
 {
-	if (g_hDelayNominate != INVALID_HANDLE)
-		delete g_hDelayNominate;
-
 	if (!g_bNEAllowed)
 		CPrintToChatAll("{green}[NE]{default} Map nominations are available now!");
 
 	g_bNEAllowed = true;
 	g_NominationDelay = 0;
-	return Plugin_Continue;
+
+	return Plugin_Stop;
 }
 
 public Action Command_DisableNE(int client, int args)
 {
+	if (!g_bNEAllowed)
+	{
+		CReplyToCommand(client, "{green}[NE]{default} Map nominations are already restricted.");
+		return Plugin_Handled;
+	}
+
 	g_bNEAllowed = false;
 	CPrintToChatAll("{green}[NE]{default} Map nominations are restricted.");
 	return Plugin_Handled;
@@ -526,8 +532,11 @@ public Action Command_DisableNE(int client, int args)
 
 public Action Command_EnableNE(int client, int args)
 {
-	if (g_hDelayNominate != INVALID_HANDLE)
-		delete g_hDelayNominate;
+	if (g_bNEAllowed)
+	{
+		CReplyToCommand(client, "{green}[NE]{default} Map nominations are already available.");
+		return Plugin_Handled;
+	}
 
 	g_bNEAllowed = true;
 	g_NominationDelay = 0;
