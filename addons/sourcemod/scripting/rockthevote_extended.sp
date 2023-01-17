@@ -44,14 +44,14 @@
 #include <AFKManager>
 #include <PlayerManager>
 
-#define MCE_VERSION "1.3.1"
+#define RTVE_VERSION "1.3.2"
 
 public Plugin myinfo =
 {
 	name = "Rock The Vote Extended",
 	author = "Powerlord and AlliedModders LLC",
 	description = "Provides RTV Map Voting",
-	version = MCE_VERSION,
+	version = RTVE_VERSION,
 	url = "https://forums.alliedmods.net/showthread.php?t=156974"
 };
 
@@ -73,6 +73,7 @@ int g_VotesNeeded = 0;			// Necessary votes before map vote begins. (voters * pe
 bool g_Voted[MAXPLAYERS+1] = {false, ...};
 
 bool g_InChange = false;
+Handle g_hDelayRTVTimer = INVALID_HANDLE;
 
 public void OnPluginStart()
 {
@@ -129,7 +130,7 @@ public void OnConfigsExecuted()
 {
 	g_CanRTV = true;
 	g_RTVAllowed = false;
-	CreateTimer(g_Cvar_InitialDelay.FloatValue, Timer_DelayRTV, _, TIMER_FLAG_NO_MAPCHANGE);
+	g_hDelayRTVTimer = CreateTimer(g_Cvar_InitialDelay.FloatValue, Timer_DelayRTV, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public void OnClientPutInServer(int client)
@@ -270,6 +271,7 @@ void AttemptRTV(int client)
 
 public Action Timer_DelayRTV(Handle timer)
 {
+	g_hDelayRTVTimer = INVALID_HANDLE;
 	g_RTVAllowed = true;
 	CPrintToChatAll("{green}[RTVE]{default} RockTheVote is available now!");
 	return Plugin_Continue;
@@ -309,7 +311,12 @@ void StartRTV()
 		ResetRTV();
 
 		g_RTVAllowed = false;
-		CreateTimer(g_Cvar_Interval.FloatValue, Timer_DelayRTV, _, TIMER_FLAG_NO_MAPCHANGE);
+
+		if (g_hDelayRTVTimer != INVALID_HANDLE)
+		{
+			delete g_hDelayRTVTimer;
+		}
+		g_hDelayRTVTimer = CreateTimer(g_Cvar_Interval.FloatValue, Timer_DelayRTV, _, TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
 
@@ -343,27 +350,37 @@ public Action Command_ForceRTV(int client, int args)
 	if(!g_CanRTV)
 		return Plugin_Handled;
 
-	if (client == 0)
-  		ShowActivity2(client, "[RTVE] ", "%t", "Initiated Vote Map");
-	else
-  		CShowActivity2(client, "{green}[RTVE]{default} ", "%t", "Initiated Vote Map");
+	if (EndOfMapVoteEnabled() && HasEndOfMapVoteFinished())
+	{
+		/* Print who forced mapchange */
+		char map[PLATFORM_MAX_PATH];
+		if (GetNextMap(map, sizeof(map)))
+		{
+			GetMapDisplayName(map, map, sizeof(map));
+			LogAction(client, -1, "\"%L\" Forced RockTheVote.. Changing map!\nNextmap: %s", client, map);
+		}
+
+		StartRTV();
+		return Plugin_Handled;
+	}
+
+	CShowActivity2(client, "{green}[RTVE]{olive} ", "{default}%t", "Initiated Vote Map");
+	LogAction(client, -1, "\"%L\" Initiated a map vote. (Forced RockTheVote)", client);
 
 	StartRTV();
-
 	return Plugin_Handled;
 }
 
 public Action Command_DisableRTV(int client, int args)
 {
-	if(!g_RTVAllowed)
-		return Plugin_Handled;
-
-	if (client == 0)
-  		ShowActivity2(client, "[RTVE] ", "disabled RockTheVote.");
-	else
-  		CShowActivity2(client, "{green}[RTVE]{default} ", "disabled RockTheVote.");
-
+	CShowActivity2(client, "{green}[RTVE]{olive} ", "{default}disabled RockTheVote.");
+	LogAction(client, -1, "\"%L\" Disabled RockTheVote.", client);
+	
 	g_RTVAllowed = false;
+	if (g_hDelayRTVTimer != INVALID_HANDLE)
+	{
+		delete g_hDelayRTVTimer;
+	}
 
 	return Plugin_Handled;
 }
@@ -371,12 +388,13 @@ public Action Command_DisableRTV(int client, int args)
 public Action Command_EnableRTV(int client, int args)
 {
 	if(g_RTVAllowed)
+	{
+		CReplyToCommand(client, "{green}[RTVE]{default} %t is already Enabled.", "Rock The Vote");
 		return Plugin_Handled;
+	}
 
-	if (client == 0)
-  		ShowActivity2(client, "[RTVE] ", "enabled RockTheVote");
-	else
-  		CShowActivity2(client, "{green}[RTVE]{default} ", "enabled RockTheVote");
+  	CShowActivity2(client, "{green}[RTVE]{olive} ", "{default}enabled RockTheVote.");
+	LogAction(client, -1, "\"%L\" Enabled RockTheVote.", client);
 
 	g_RTVAllowed = true;
 
@@ -387,7 +405,7 @@ public Action Command_DebugRTV(int client, int args)
 {
 	if(!g_RTVAllowed)
 	{
-		CReplyToCommand(client, "{green}[RTVE]{default} RockTheVote is currently disabled.");
+		CReplyToCommand(client, "{green}[RTVE]{default} RockTheVote is currently Disabled.");
 		return Plugin_Handled;
 	}
 
