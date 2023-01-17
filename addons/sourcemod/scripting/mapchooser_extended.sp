@@ -121,7 +121,6 @@ ConVar g_Cvar_RandomStartTime;
 Handle g_VoteTimer = INVALID_HANDLE;
 Handle g_RetryTimer = INVALID_HANDLE;
 Handle g_WarningTimer = INVALID_HANDLE;
-Handle g_NominationsTimer = INVALID_HANDLE;
 
 /* Data Handles */
 Handle g_MapList = INVALID_HANDLE;
@@ -544,7 +543,6 @@ public void OnMapEnd()
 	g_VoteTimer = INVALID_HANDLE;
 	g_RetryTimer = INVALID_HANDLE;
 	g_WarningTimer = INVALID_HANDLE;
-	g_NominationsTimer = INVALID_HANDLE;
 	g_RunoffCount = 0;
 
 	static char map[PLATFORM_MAX_PATH];
@@ -1342,13 +1340,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 	#if defined _nominations_extended_included_
 		if(g_Cvar_LockNominationsAtWarning.IntValue > 0)
 		{
-			if(g_NominationsTimer != INVALID_HANDLE)
-			{
-				KillTimer(g_NominationsTimer);
-				g_NominationsTimer = INVALID_HANDLE;
-			}
-
-			g_NominationsTimer = CreateTimer(GetConVarFloat(g_Cvar_TimerUnlockNoms), UnlockNominations, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
+			CreateTimer(GetConVarFloat(g_Cvar_TimerUnlockNoms), UnlockNominations, _, TIMER_FLAG_NO_MAPCHANGE);
 		}
 	#endif
 
@@ -1366,13 +1358,7 @@ public void Handler_VoteFinishedGeneric(Handle menu,
 	#if defined _nominations_extended_included_
 		if(g_Cvar_LockNominationsAtWarning.IntValue > 0)
 		{
-			if(g_NominationsTimer != INVALID_HANDLE)
-			{
-				KillTimer(g_NominationsTimer);
-				g_NominationsTimer = INVALID_HANDLE;
-			}
-
-			g_NominationsTimer = CreateTimer(GetConVarFloat(g_Cvar_TimerUnlockNoms), UnlockNominations, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
+			CreateTimer(GetConVarFloat(g_Cvar_TimerUnlockNoms), UnlockNominations, _, TIMER_FLAG_NO_MAPCHANGE);
 		}
 	#endif
 
