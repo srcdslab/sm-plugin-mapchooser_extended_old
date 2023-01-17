@@ -56,7 +56,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MCE_VERSION "1.3.3"
+#define MCE_VERSION "1.3.4"
 
 enum RoundCounting
 {
@@ -115,12 +115,14 @@ ConVar g_Cvar_NoVoteMode;
 ConVar g_Cvar_Extend;
 ConVar g_Cvar_DontChange;
 ConVar g_Cvar_EndOfMapVote;
+ConVar g_Cvar_EndOfMapInfo;
 ConVar g_Cvar_VoteDuration;
 ConVar g_Cvar_RandomStartTime;
 
 Handle g_VoteTimer = INVALID_HANDLE;
 Handle g_RetryTimer = INVALID_HANDLE;
 Handle g_WarningTimer = INVALID_HANDLE;
+Handle g_hHud = INVALID_HANDLE;
 
 /* Data Handles */
 Handle g_MapList = INVALID_HANDLE;
@@ -239,6 +241,7 @@ public void OnPluginStart()
 	GetGameFolderName(g_GameModName, sizeof(g_GameModName));
 
 	g_Cvar_EndOfMapVote = CreateConVar("mce_endvote", "1", "Specifies if MapChooser should run an end of map vote", _, true, 0.0, true, 1.0);
+	g_Cvar_EndOfMapInfo = CreateConVar("mce_endmap_info", "1", "Specifies if MapChooser should print a message with nextmap when the map end.", _, true, 0.0, true, 1.0);
 
 	g_Cvar_StartTime = CreateConVar("mce_starttime", "10.0", "Specifies when to start the vote based on time remaining.", _, true, 1.0);
 	g_Cvar_RandomStartTime = CreateConVar("mce_random_starttime", "30.0", "The max interval time to add up to the original interval time for map vote in seconds", _, true, 1.0, true, 180.0);
@@ -356,9 +359,11 @@ public void OnPluginStart()
 			case Engine_CSGO:
 			{
 				HookEvent("round_end", Event_RoundEnd);
+				HookEvent("round_end", Event_PreRoundEnd, EventHookMode_Pre);
 				HookEvent("cs_intermission", Event_Intermission);
 				HookEvent("announce_phase_end", Event_PhaseEnd);
 				g_Cvar_MatchClinch = FindConVar("mp_match_can_clinch");
+				g_hHud = CreateHudSynchronizer();
 			}
 
 			case Engine_DODS:
@@ -369,6 +374,8 @@ public void OnPluginStart()
 			default:
 			{
 				HookEvent("round_end", Event_RoundEnd);
+				HookEvent("round_end", Event_PreRoundEnd, EventHookMode_Pre);
+				g_hHud = CreateHudSynchronizer();
 			}
 		}
 	}
@@ -864,6 +871,38 @@ public void Event_WeaponRank(Handle event, const char[] name, bool dontBroadcast
 }
 
 /* You ask, why don't you just use team_score event? And I answer... Because CSS doesn't. */
+public Action Event_PreRoundEnd(Handle event, const char[] name, bool dontBroadcast)
+{
+	if (!g_Cvar_EndOfMapInfo)
+		return Plugin_Handled;
+
+	int timeLeft;
+	if(!GetMapTimeLeft(timeLeft))
+		return Plugin_Handled;
+
+	if(timeLeft >= 0)
+		return Plugin_Handled;
+
+	char nextMap[64];
+	if(!GetNextMap(nextMap, sizeof(nextMap)))
+		return Plugin_Handled;
+
+	if (g_hHud != INVALID_HANDLE)
+	{
+		SetHudTextParams(-1.0, 0.01, 4.0, 255, 71, 1, 1, 1, 4.0, 0.6, 0.6);
+		for(int i = 1; i <= MaxClients; i++)
+		{
+			if(!IsClientInGame(i) || IsFakeClient(i) || IsClientObserver(i))
+				continue;
+
+			ClearSyncHud(i, g_hHud);
+			ShowSyncHudText(i, g_hHud, "Next Map: %s", nextMap);
+		}
+	}
+
+	return Plugin_Handled;
+}
+
 public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(g_RoundCounting == RoundCounting_ArmsRace)
