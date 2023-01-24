@@ -196,7 +196,8 @@ public void OnConfigsExecuted()
 	}
 
 	g_bNEAllowed = false;
-	delete g_hDelayNominate;
+	if (g_hDelayNominate != INVALID_HANDLE)
+  		delete g_hDelayNominate;
 
 	g_hDelayNominate = CreateTimer(g_Cvar_InitialDelay.FloatValue, Timer_DelayNominate, _, TIMER_FLAG_NO_MAPCHANGE);
 
