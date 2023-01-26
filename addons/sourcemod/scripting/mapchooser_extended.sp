@@ -122,7 +122,6 @@ ConVar g_Cvar_RandomStartTime;
 Handle g_VoteTimer = INVALID_HANDLE;
 Handle g_RetryTimer = INVALID_HANDLE;
 Handle g_WarningTimer = INVALID_HANDLE;
-Handle g_hHud = INVALID_HANDLE;
 
 /* Data Handles */
 Handle g_MapList = INVALID_HANDLE;
@@ -359,11 +358,10 @@ public void OnPluginStart()
 			case Engine_CSGO:
 			{
 				HookEvent("round_end", Event_RoundEnd);
-				HookEvent("round_end", Event_PreRoundEnd, EventHookMode_Pre);
+				HookEvent("cs_win_panel_match", Event_WinPanel);
 				HookEvent("cs_intermission", Event_Intermission);
 				HookEvent("announce_phase_end", Event_PhaseEnd);
 				g_Cvar_MatchClinch = FindConVar("mp_match_can_clinch");
-				g_hHud = CreateHudSynchronizer();
 			}
 
 			case Engine_DODS:
@@ -374,8 +372,7 @@ public void OnPluginStart()
 			default:
 			{
 				HookEvent("round_end", Event_RoundEnd);
-				HookEvent("round_end", Event_PreRoundEnd, EventHookMode_Pre);
-				g_hHud = CreateHudSynchronizer();
+				HookEvent("cs_win_panel_match", Event_WinPanel);
 			}
 		}
 	}
@@ -870,22 +867,16 @@ public void Event_WeaponRank(Handle event, const char[] name, bool dontBroadcast
 	}
 }
 
-/* You ask, why don't you just use team_score event? And I answer... Because CSS doesn't. */
-public Action Event_PreRoundEnd(Handle event, const char[] name, bool dontBroadcast)
+public void Event_WinPanel(Handle event, const char[] name, bool dontBroadcast)
 {
-	if (!g_Cvar_EndOfMapInfo)
-		return Plugin_Handled;
-
-	int timeLeft;
-	if(!GetMapTimeLeft(timeLeft))
-		return Plugin_Handled;
-
-	if(timeLeft >= 0)
-		return Plugin_Handled;
+	if (g_Cvar_EndOfMapInfo.IntValue != 1)
+		return;
 
 	char nextMap[64];
 	if(!GetNextMap(nextMap, sizeof(nextMap)))
-		return Plugin_Handled;
+		return;
+
+	Handle g_hHud = CreateHudSynchronizer();
 
 	if (g_hHud != INVALID_HANDLE)
 	{
@@ -897,12 +888,21 @@ public Action Event_PreRoundEnd(Handle event, const char[] name, bool dontBroadc
 
 			ClearSyncHud(i, g_hHud);
 			ShowSyncHudText(i, g_hHud, "Next Map: %s", nextMap);
+			CPrintToChat(i, "{lightgreen}Next Map: {green}%s", nextMap);
 		}
 	}
+	else
+	{	
+		CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
+		CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
+		CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
+	}
 
-	return Plugin_Handled;
+	if(g_hHud != INVALID_HANDLE)
+		delete g_hHud;
 }
 
+/* You ask, why don't you just use team_score event? And I answer... Because CSS doesn't. */
 public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(g_RoundCounting == RoundCounting_ArmsRace)
