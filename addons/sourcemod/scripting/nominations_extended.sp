@@ -153,8 +153,7 @@ public void OnAllPluginsLoaded()
 
 public void OnMapEnd()
 {
-	if (g_hDelayNominate != INVALID_HANDLE)
-  		delete g_hDelayNominate;
+	g_hDelayNominate = INVALID_HANDLE;
 	g_bNEAllowed = false;
 }
 
