@@ -889,13 +889,12 @@ public void Event_WinPanel(Handle event, const char[] name, bool dontBroadcast)
 			ClearSyncHud(i, g_hHud);
 			ShowSyncHudText(i, g_hHud, "Next Map: %s", nextMap);
 		}
+		delete g_hHud;
 	}
-	
+
 	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
 	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
 	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);
-
-	delete g_hHud;
 }
 
 /* You ask, why don't you just use team_score event? And I answer... Because CSS doesn't. */
