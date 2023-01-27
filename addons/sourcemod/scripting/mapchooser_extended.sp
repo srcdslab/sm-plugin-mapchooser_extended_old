@@ -880,26 +880,22 @@ public void Event_WinPanel(Handle event, const char[] name, bool dontBroadcast)
 
 	if (g_hHud != INVALID_HANDLE)
 	{
-		SetHudTextParams(-1.0, 0.01, 4.0, 255, 71, 1, 1, 1, 4.0, 0.6, 0.6);
+		SetHudTextParams(-1.0, 0.89, 7.0, 255, 71, 1, 1, 1, 4.0, 0.6, 0.6);
 		for(int i = 1; i <= MaxClients; i++)
 		{
-			if(!IsClientInGame(i) || IsFakeClient(i) || IsClientObserver(i))
+			if(!IsClientInGame(i) || IsFakeClient(i))
 				continue;
 
 			ClearSyncHud(i, g_hHud);
 			ShowSyncHudText(i, g_hHud, "Next Map: %s", nextMap);
-			CPrintToChat(i, "{lightgreen}Next Map: {green}%s", nextMap);
 		}
 	}
-	else
-	{	
-		CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
-		CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
-		CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
-	}
+	
+	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
+	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
+	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);
 
-	if(g_hHud != INVALID_HANDLE)
-		delete g_hHud;
+	delete g_hHud;
 }
 
 /* You ask, why don't you just use team_score event? And I answer... Because CSS doesn't. */
