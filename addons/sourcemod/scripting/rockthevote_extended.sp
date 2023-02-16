@@ -44,7 +44,7 @@
 #include <AFKManager>
 #include <PlayerManager>
 
-#define RTVE_VERSION "1.3.2"
+#define RTVE_VERSION "1.3.3"
 
 public Plugin myinfo =
 {
@@ -373,13 +373,20 @@ public Action Command_ForceRTV(int client, int args)
 
 public Action Command_DisableRTV(int client, int args)
 {
-	CShowActivity2(client, "{green}[RTVE]{olive} ", "{default}disabled RockTheVote.");
-	LogAction(client, -1, "\"%L\" Disabled RockTheVote.", client);
-	
-	g_RTVAllowed = false;
-	if (g_hDelayRTVTimer != INVALID_HANDLE)
+	if (g_RTVAllowed)
 	{
-		delete g_hDelayRTVTimer;
+		CShowActivity2(client, "{green}[RTVE]{olive} ", "{default}disabled RockTheVote.");
+		LogAction(client, -1, "\"%L\" Disabled RockTheVote.", client);
+	
+		g_RTVAllowed = false;
+		if (g_hDelayRTVTimer != INVALID_HANDLE)
+		{
+			delete g_hDelayRTVTimer;
+		}
+	}
+	else
+	{
+		CReplyToCommand(client, "{green}[RTVE]{default} RockTheVote is already Disabled.");
 	}
 
 	return Plugin_Handled;
@@ -389,7 +396,7 @@ public Action Command_EnableRTV(int client, int args)
 {
 	if(g_RTVAllowed)
 	{
-		CReplyToCommand(client, "{green}[RTVE]{default} %t is already Enabled.", "Rock The Vote");
+		CReplyToCommand(client, "{green}[RTVE]{default} RockTheVote is already Enabled.");
 		return Plugin_Handled;
 	}
 
