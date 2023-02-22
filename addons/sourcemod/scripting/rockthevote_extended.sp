@@ -41,10 +41,10 @@
 #include <nextmap>
 
 #include <multicolors>
-#include <AFKManager>
-#include <PlayerManager>
+#tryinclude <AFKManager>
+#tryinclude <PlayerManager>
 
-#define RTVE_VERSION "1.3.3"
+#define RTVE_VERSION "1.3.4"
 
 public Plugin myinfo =
 {
@@ -56,14 +56,18 @@ public Plugin myinfo =
 };
 
 ConVar g_Cvar_Steam_Needed;
+#if defined _PlayerManager_included
 ConVar g_Cvar_NoSteam_Needed;
+#endif
 ConVar g_Cvar_MinPlayers;
 ConVar g_Cvar_InitialDelay;
 ConVar g_Cvar_Interval;
 ConVar g_Cvar_ChangeTime;
 ConVar g_Cvar_RTVPostVoteAction;
 ConVar g_Cvar_RTVAutoDisable;
+#if defined _AFKManager_Included
 ConVar g_Cvar_AFKTime;
+#endif
 
 bool g_CanRTV = false;			// True if RTV loaded maps and is active.
 bool g_RTVAllowed = false;		// True if RTV is available to players. Used to delay rtv votes.
@@ -82,14 +86,21 @@ public void OnPluginStart()
 	LoadTranslations("basevotes.phrases");
 
 	g_Cvar_Steam_Needed = CreateConVar("sm_rtv_steam_needed", "0.65", "Percentage of Steam players added to rockthevote calculation (Def 65%)", 0, true, 0.05, true, 1.0);
+
+#if defined _PlayerManager_included
 	g_Cvar_NoSteam_Needed = CreateConVar("sm_rtv_nosteam_needed", "0.45", "Percentage of No-Steam players added to rockthevote calculation (Def 45%)", 0, true, 0.05, true, 1.0);
+#endif
+
 	g_Cvar_MinPlayers = CreateConVar("sm_rtv_minplayers", "0", "Number of players required before RTV will be enabled.", 0, true, 0.0, true, float(MAXPLAYERS));
 	g_Cvar_InitialDelay = CreateConVar("sm_rtv_initialdelay", "30.0", "Time (in seconds) before first RTV can be held", 0, true, 0.00);
 	g_Cvar_Interval = CreateConVar("sm_rtv_interval", "240.0", "Time (in seconds) after a failed RTV before another can be held", 0, true, 0.00);
 	g_Cvar_ChangeTime = CreateConVar("sm_rtv_changetime", "0", "When to change the map after a succesful RTV: 0 - Instant, 1 - RoundEnd, 2 - MapEnd", _, true, 0.0, true, 2.0);
 	g_Cvar_RTVPostVoteAction = CreateConVar("sm_rtv_postvoteaction", "0", "What to do with RTV's after a mapvote has completed. 0 - Allow, success = instant change, 1 - Deny", _, true, 0.0, true, 1.0);
 	g_Cvar_RTVAutoDisable = CreateConVar("sm_rtv_autodisable", "0", "Automatically disable RTV when map time is over.", _, true, 0.0, true, 1.0);
+
+	#if defined _AFKManager_Included
 	g_Cvar_AFKTime = CreateConVar("sm_rtv_afk_time", "180", "AFK Time in seconds after which a player is not counted in the rtv ratio");
+	#endif
 
 	RegConsoleCmd("sm_rtv", Command_RTV);
 
@@ -157,39 +168,51 @@ public void OnPlayerChangedTeam(Handle event, const char[] name, bool dontBroadc
 void UpdateRTV()
 {
 	g_Voters = 0;
+#if defined _PlayerManager_included
 	int iVotersSteam;
-	int iVotersNoSteam;
+	int iVotersNoSteam; 
+#endif
 
+#if defined _AFKManager_Included || defined _PlayerManager_included
 	for (int i=1; i<=MaxClients; i++)
 	{
 		if (IsClientInGame(i) && !IsFakeClient(i))
 		{
+		#if defined _AFKManager_Included
 			if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
 				continue;
+		#endif
 
+		#if defined _PlayerManager_included
 			if (PM_IsPlayerSteam(i))
 				iVotersSteam++;
 			else
 				iVotersNoSteam++;
+		#endif
 		}
 	}
+#endif
 
-//	g_Voters = GetTeamClientCount(2) + GetTeamClientCount(3);
+#if defined _PlayerManager_included
 	g_Voters = iVotersSteam + iVotersNoSteam;
 	int iVotesNeededSteam = RoundToFloor(float(iVotersSteam) * GetConVarFloat(g_Cvar_Steam_Needed));
 	int iVotesNeededNoSteam = RoundToFloor(float(iVotersNoSteam) * GetConVarFloat(g_Cvar_NoSteam_Needed));
+#else
+	g_Voters = GetTeamClientCount(2) + GetTeamClientCount(3);
+#endif
 
+#if defined _PlayerManager_included
 	g_VotesNeeded = iVotesNeededSteam + iVotesNeededNoSteam;
+#else
+	g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Steam_Needed.FloatValue);
+#endif
 
 	if (!g_CanRTV)
 	{
 		return;
 	}
 
-	if (g_Votes &&
-		g_Voters &&
-		g_Votes >= g_VotesNeeded &&
-		RTVAllowed())
+	if (g_Votes && g_Voters && g_Votes >= g_VotesNeeded && RTVAllowed())
 	{
 		if (g_Cvar_RTVPostVoteAction.IntValue == 1 && HasEndOfMapVoteFinished())
 		{
@@ -416,31 +439,57 @@ public Action Command_DebugRTV(int client, int args)
 		return Plugin_Handled;
 	}
 
-	int iVotersSteam = 0;
-	int iVotersNoSteam = 0;
+	g_Voters = 0;
+#if defined _PlayerManager_included
+	int iVotersSteam;
+	int iVotersNoSteam;
+#endif
 
+#if defined _AFKManager_Included || defined _PlayerManager_included
 	for (int i=1; i<=MaxClients; i++)
 	{
 		if (IsClientInGame(i) && !IsFakeClient(i))
 		{
+		#if defined _AFKManager_Included
 			if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
 				continue;
+		#endif
 
+		#if defined _PlayerManager_included
 			if (PM_IsPlayerSteam(i))
 				iVotersSteam++;
 			else
 				iVotersNoSteam++;
+		#endif
 		}
 	}
+#endif
 
+#if defined _PlayerManager_included
+	g_Voters = iVotersSteam + iVotersNoSteam;
 	int iVotesNeededSteam = RoundToFloor(float(iVotersSteam) * GetConVarFloat(g_Cvar_Steam_Needed));
 	int iVotesNeededNoSteam = RoundToFloor(float(iVotersNoSteam) * GetConVarFloat(g_Cvar_NoSteam_Needed));
+#else
+	g_Voters = GetTeamClientCount(2) + GetTeamClientCount(3);
+#endif
 
+#if defined _PlayerManager_included
+	g_VotesNeeded = iVotesNeededSteam + iVotesNeededNoSteam;
+#else
+	g_VotesNeeded = RoundToCeil(float(g_Voters) * g_Cvar_Steam_Needed.FloatValue);
+#endif
+
+#if defined _PlayerManager_included
 	int iVotesNeededTotal = iVotesNeededSteam + iVotesNeededNoSteam;
+#else
+	int iVotesNeededTotal = g_VotesNeeded;
+#endif
 
 	CReplyToCommand(client, "{green}[RTVE]{default} Currently %d Players needed to start a RTV vote.", iVotesNeededTotal);
+#if defined _PlayerManager_included
 	CReplyToCommand(client, "{green}[RTVE]{default} Calculated on %d Active Steam Players * %.2f Ratio = %d", iVotersSteam, GetConVarFloat(g_Cvar_Steam_Needed), iVotesNeededSteam);
 	CReplyToCommand(client, "{green}[RTVE]{default} + on %d Active No Steam Players * %.2f Ratio = %d.", iVotersNoSteam, GetConVarFloat(g_Cvar_NoSteam_Needed), iVotesNeededNoSteam);
+#endif
 
 	return Plugin_Handled;
 }
