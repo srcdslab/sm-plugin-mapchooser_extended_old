@@ -295,7 +295,7 @@ public Action Command_Addmap(int client, int args)
 
 	if(!IsMapValid(mapname))
 	{
-		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map Not In Pool", mapname);
 		AttemptAdminNominate(client, mapname);
 		return Plugin_Handled;
 	}
