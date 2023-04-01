@@ -42,7 +42,7 @@
 #include <multicolors>
 #tryinclude <sourcecomms>
 
-#define NE_VERSION "1.3.2"
+#define NE_VERSION "1.3.3"
 
 public Plugin myinfo =
 {
@@ -295,7 +295,7 @@ public Action Command_Addmap(int client, int args)
 
 	if(!IsMapValid(mapname))
 	{
-		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map Not In Pool", mapname);
 		AttemptAdminNominate(client, mapname);
 		return Plugin_Handled;
 	}
@@ -620,7 +620,7 @@ public Action Command_Nominate(int client, int args)
 	int status;
 	if(!GetTrieValue(g_mapTrie, mapname, status))
 	{
-		CPrintToChat(client, "{green}[NE]{default} %t", "Map was not found", mapname);
+		CPrintToChat(client, "{green}[NE]{default} %t", "Map Not In Pool", mapname);
 		AttemptNominate(client, mapname);
 		return Plugin_Handled;
 	}
