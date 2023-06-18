@@ -44,7 +44,7 @@
 #tryinclude <AFKManager>
 #tryinclude <PlayerManager>
 
-#define RTVE_VERSION "1.3.4"
+#define RTVE_VERSION "1.3.5"
 
 public Plugin myinfo =
 {
@@ -58,6 +58,7 @@ public Plugin myinfo =
 ConVar g_Cvar_Steam_Needed;
 #if defined _PlayerManager_included
 ConVar g_Cvar_NoSteam_Needed;
+bool g_bPlugin_PM = false;
 #endif
 ConVar g_Cvar_MinPlayers;
 ConVar g_Cvar_InitialDelay;
@@ -67,6 +68,7 @@ ConVar g_Cvar_RTVPostVoteAction;
 ConVar g_Cvar_RTVAutoDisable;
 #if defined _AFKManager_Included
 ConVar g_Cvar_AFKTime;
+bool g_bPlugin_AFK = false;
 #endif
 
 bool g_CanRTV = false;			// True if RTV loaded maps and is active.
@@ -112,6 +114,26 @@ public void OnPluginStart()
 	HookEvent("player_team", OnPlayerChangedTeam, EventHookMode_PostNoCopy);
 
 	AutoExecConfig(true, "rtv");
+}
+
+public void OnAllPluginsLoaded()
+{
+	g_bPlugin_AFK = LibraryExists("AFKManager");
+	g_bPlugin_AFK = LibraryExists("PlayerManager");
+}
+public void OnLibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "AFKManager"))
+		g_bPlugin_AFK = false;
+	if (StrEqual(name, "PlayerManager"))
+		g_bPlugin_PM = false;
+}
+public void OnLibraryAdded(const char[] name)
+{
+	if (StrEqual(name, "AFKManager"))
+		g_bPlugin_PM = true;
+	if (StrEqual(name, "PlayerManager"))
+		g_bPlugin_PM = true;
 }
 
 public void OnMapStart()
@@ -179,15 +201,25 @@ void UpdateRTV()
 		if (IsClientInGame(i) && !IsFakeClient(i))
 		{
 		#if defined _AFKManager_Included
-			if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
+			if (!g_bPlugin_AFK)
 				continue;
+			else
+			{
+				if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
+					continue;
+			}
 		#endif
 
 		#if defined _PlayerManager_included
-			if (PM_IsPlayerSteam(i))
-				iVotersSteam++;
+			if (!g_bPlugin_PM)
+				continue;
 			else
-				iVotersNoSteam++;
+			{
+				if (PM_IsPlayerSteam(i))
+					iVotersSteam++;
+				else
+					iVotersNoSteam++;
+			}
 		#endif
 		}
 	}
