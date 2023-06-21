@@ -119,7 +119,7 @@ public void OnPluginStart()
 public void OnAllPluginsLoaded()
 {
 	g_bPlugin_AFK = LibraryExists("AFKManager");
-	g_bPlugin_AFK = LibraryExists("PlayerManager");
+	g_bPlugin_PM = LibraryExists("PlayerManager");
 }
 public void OnLibraryRemoved(const char[] name)
 {
@@ -131,7 +131,7 @@ public void OnLibraryRemoved(const char[] name)
 public void OnLibraryAdded(const char[] name)
 {
 	if (StrEqual(name, "AFKManager"))
-		g_bPlugin_PM = true;
+		g_bPlugin_AFK = true;
 	if (StrEqual(name, "PlayerManager"))
 		g_bPlugin_PM = true;
 }
@@ -201,9 +201,7 @@ void UpdateRTV()
 		if (IsClientInGame(i) && !IsFakeClient(i))
 		{
 		#if defined _AFKManager_Included
-			if (!g_bPlugin_AFK)
-				continue;
-			else
+			if (g_bPlugin_AFK)
 			{
 				if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
 					continue;
@@ -211,9 +209,7 @@ void UpdateRTV()
 		#endif
 
 		#if defined _PlayerManager_included
-			if (!g_bPlugin_PM)
-				continue;
-			else
+			if (g_bPlugin_PM)
 			{
 				if (PM_IsPlayerSteam(i))
 					iVotersSteam++;
