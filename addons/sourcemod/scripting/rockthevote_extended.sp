@@ -479,15 +479,21 @@ public Action Command_DebugRTV(int client, int args)
 		if (IsClientInGame(i) && !IsFakeClient(i))
 		{
 		#if defined _AFKManager_Included
-			if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
-				continue;
+			if (g_bPlugin_AFK)
+			{
+				if (GetClientIdleTime(i) >= g_Cvar_AFKTime.IntValue)
+					continue;
+			}
 		#endif
 
 		#if defined _PlayerManager_included
-			if (PM_IsPlayerSteam(i))
-				iVotersSteam++;
-			else
-				iVotersNoSteam++;
+		if (g_bPlugin_PM)
+			{
+				if (PM_IsPlayerSteam(i))
+					iVotersSteam++;
+				else
+					iVotersNoSteam++;
+			}
 		#endif
 		}
 	}
