@@ -40,7 +40,7 @@ project:
 
     - name: zleader
       type: git
-      repo: https://github.com/Rushaway/ZLeader-Remake/tree/nide-fork
+      repo: https://github.com/Rushaway/ZLeader-Remake
       unpack:
       - source: /addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
