@@ -135,6 +135,8 @@ native int GetMapGroupRestriction(const char[] map, int client = 0);
 
 native bool GetMapVIPRestriction(const char[] map, int client = 0);
 
+native bool GetMapLeaderRestriction(const char[] map, int client = 0);
+
 
 
 /**
