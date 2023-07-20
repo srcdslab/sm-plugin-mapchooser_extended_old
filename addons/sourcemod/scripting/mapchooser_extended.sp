@@ -45,7 +45,7 @@
 
 #undef REQUIRE_PLUGIN
 #tryinclude <nominations_extended>
-#include <zleader>
+#tryinclude <zleader>
 #define REQUIRE_PLUGIN
 #include <sourcemod>
 #include <mapchooser>
@@ -143,7 +143,9 @@ bool g_MapVoteCompleted;
 bool g_ChangeMapAtRoundEnd;
 bool g_ChangeMapInProgress;
 bool g_HasIntermissionStarted = false;
+#if defined _zleader_included
 bool g_ZLeader = false;
+#endif
 int g_mapFileSerial = -1;
 
 int g_NominateCount = 0;
@@ -415,7 +417,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	RegPluginLibrary("mapchooser");
 
 	MarkNativeAsOptional("GetEngineVersion");
-	MarkNativeAsOptional("ZL_IsPossibleLeader");
 
 	CreateNative("NominateMap", Native_NominateMap);
 	CreateNative("RemoveNominationByMap", Native_RemoveNominationByMap);
@@ -443,7 +444,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetMapGroups", Native_GetMapGroups);
 	CreateNative("GetMapGroupRestriction", Native_GetMapGroupRestriction);
 	CreateNative("GetMapVIPRestriction", Native_GetMapVIPRestriction);
+	#if defined _zleader_included
 	CreateNative("GetMapLeaderRestriction", Native_GetMapLeaderRestriction);
+	#endif
 	CreateNative("GetExtendsLeft", Native_GetExtendsLeft);
 	CreateNative("AreRestrictionsActive", Native_AreRestrictionsActive);
 	CreateNative("SimulateMapEnd", Native_SimulateMapEnd);
@@ -451,6 +454,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
+#if defined _zleader_included
 public void OnAllPluginsLoaded()
 {
 	g_ZLeader = LibraryExists("zleader");
@@ -465,6 +469,7 @@ public void OnLibraryAdded(const char[] name)
 	if (StrEqual(name, "zleader"))
 		g_ZLeader = true;
 }
+#endif
 
 public void OnMapStart()
 {
@@ -1584,10 +1589,12 @@ public int Handler_MapVoteMenu(Handle menu, MenuAction action, int param1, int p
 				{
 					Format(buffer, sizeof(buffer), "%s (%T)", map, "VIP Nomination", param1);
 				}
+				#if defined _zleader_included
 				else if(InternalGetMapLeaderRestriction(map))
 				{
 					Format(buffer, sizeof(buffer), "%s (%T)", map, "Leader Nomination", param1);
 				}
+				#endif
 			}
 
 			if(buffer[0] != '\0')
@@ -1766,8 +1773,10 @@ void CreateNextVote()
 			if(InternalGetMapVIPRestriction(map))
 				continue;
 
+			#if defined _zleader_included
 			if(InternalGetMapLeaderRestriction(map))
 				continue;
+			#endif
 
 			if(InternalGetMapTimeRestriction(map) != 0)
 				continue;
@@ -2480,6 +2489,7 @@ public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 	return InternalGetMapVIPRestriction(map);
 }
 
+#if defined _zleader_included
 public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(2);
@@ -2506,6 +2516,7 @@ public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 
 	return InternalGetMapLeaderRestriction(map);
 }
+#endif
 
 public int Native_GetExtendsLeft(Handle plugin, int numParams)
 {
@@ -2874,6 +2885,7 @@ stock bool InternalGetMapVIPRestriction(const char[] map)
 	return view_as<bool>(VIP);
 }
 
+#if defined _zleader_included
 stock bool InternalGetMapLeaderRestriction(const char[] map)
 {
 	int Leader = 0;
@@ -2886,6 +2898,7 @@ stock bool InternalGetMapLeaderRestriction(const char[] map)
 
 	return view_as<bool>(Leader);
 }
+#endif
 
 stock void InternalRestoreMapCooldowns()
 {
