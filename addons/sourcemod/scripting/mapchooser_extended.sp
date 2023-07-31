@@ -2505,10 +2505,6 @@ public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 	// Check if client should bypass leader restrictions
 	if(client >= 1 && client <= MaxClients)
 	{
-		// Client has ban flag, dont return leader restrictions
-		if(CheckCommandAccess(client, "sm_ban", ADMFLAG_BAN))
-			return false;
-	
 		// Client has leader.ini access, dont return leader restrictions
 		if(g_ZLeader && ZL_IsPossibleLeader(client))
 			return false;

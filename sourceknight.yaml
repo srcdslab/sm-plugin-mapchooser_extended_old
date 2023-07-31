@@ -40,7 +40,7 @@ project:
 
     - name: zleader
       type: git
-      repo: https://github.com/Rushaway/ZLeader-Remake
+      repo: https://github.com/srcdslab/sm-plugin-ZLeader
       unpack:
       - source: /addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
