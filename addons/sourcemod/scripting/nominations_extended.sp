@@ -35,14 +35,17 @@
 #pragma semicolon 1
 #pragma newdecls required
 
+#undef REQUIRE_PLUGIN
+#tryinclude <sourcecomms>
+#tryinclude <zleader>
+#define REQUIRE_PLUGIN
 #include <sourcemod>
 #include <mapchooser>
 #include <mapchooser_extended>
 #include <basecomm>
 #include <multicolors>
-#tryinclude <sourcecomms>
 
-#define NE_VERSION "1.3.3"
+#define NE_VERSION "1.3.4"
 
 public Plugin myinfo =
 {
@@ -661,6 +664,16 @@ public Action Command_Nominate(int client, int args)
 		return Plugin_Handled;
 	}
 
+	#if defined _zleader_included
+	bool LeaderRestriction = GetMapLeaderRestriction(mapname, client);
+	if(RestrictionsActive && LeaderRestriction)
+	{
+		CPrintToChat(client, "{green}[NE]{default} %t", "Map Nominate Leader Error");
+
+		return Plugin_Handled;
+	}
+	#endif
+
 	int TimeRestriction = GetMapTimeRestriction(mapname);
 	if(RestrictionsActive && TimeRestriction)
 	{
@@ -893,6 +906,12 @@ bool PopulateNominateListMenu(Menu menu, int client, const char[] filter = "")
 			if((VIPRestriction) && AreRestrictionsActive())
 				Format(display, sizeof(display), "%s (%T)", display, "VIP Nomination", client);
 
+			#if defined _zleader_included
+			bool LeaderRestriction = GetMapLeaderRestriction(map);
+			if((LeaderRestriction) && AreRestrictionsActive())
+				Format(display, sizeof(display), "%s (%T)", display, "Leader Nomination", client);
+			#endif
+
 			int owner = GetArrayCell(OwnerList, i);
 			if(!owner)
 				Format(display, sizeof(display), "%s (Admin)", display);
@@ -995,7 +1014,11 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				GetMapTimeRestriction(map) ||
 				GetMapPlayerRestriction(map) ||
 				GetMapGroupRestriction(map, param1) >= 0 ||
-				GetMapVIPRestriction(map, param1)))
+				GetMapVIPRestriction(map, param1)
+				#if defined _zleader_included
+				|| GetMapLeaderRestriction(map, param1)
+				#endif
+				))
 			{
 				CPrintToChat(param1, "{green}[NE]{default} You can't nominate this map right now.");
 				return 0;
@@ -1058,7 +1081,11 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				GetMapTimeRestriction(map) ||
 				GetMapPlayerRestriction(map) ||
 				GetMapGroupRestriction(map, param1) >= 0 ||
-				GetMapVIPRestriction(map, param1)))
+				GetMapVIPRestriction(map, param1)
+				#if defined _zleader_included
+				|| GetMapLeaderRestriction(map, param1)
+				#endif
+				))
 			{
 				return ITEMDRAW_DISABLED;
 			}
@@ -1105,6 +1132,14 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 			{
 				Format(buffer, sizeof(buffer), "%s (%T)", buffer, "VIP Restriction", param1);
 			}
+
+			#if defined _zleader_included
+			bool LeaderRestriction = GetMapLeaderRestriction(map);
+			if(RestrictionsActive && LeaderRestriction)
+			{
+				Format(buffer, sizeof(buffer), "%s (%T)", buffer, "Leader Restriction", param1);
+			}
+			#endif
 
 			int status;
 			if(GetTrieValue(g_mapTrie, map, status))
@@ -1262,7 +1297,11 @@ public int Handler_AdminMapSelectMenu(Menu menu, MenuAction action, int param1, 
 					GetMapTimeRestriction(map) ||
 					GetMapPlayerRestriction(map) ||
 					GetMapGroupRestriction(map, param1) >= 0 ||
-					GetMapVIPRestriction(map, param1)))
+					GetMapVIPRestriction(map, param1)
+					#if defined _zleader_included
+					|| GetMapLeaderRestriction(map, param1)
+					#endif
+					))
 				{
 					CPrintToChat(param1, "{green}[NE]{default} You can't nominate this map right now.");
 					return 0;

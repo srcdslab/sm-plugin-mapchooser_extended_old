@@ -45,6 +45,7 @@
 
 #undef REQUIRE_PLUGIN
 #tryinclude <nominations_extended>
+#tryinclude <zleader>
 #define REQUIRE_PLUGIN
 #include <sourcemod>
 #include <mapchooser>
@@ -56,7 +57,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MCE_VERSION "1.3.4"
+#define MCE_VERSION "1.3.5"
 
 enum RoundCounting
 {
@@ -118,6 +119,7 @@ ConVar g_Cvar_EndOfMapVote;
 ConVar g_Cvar_EndOfMapInfo;
 ConVar g_Cvar_VoteDuration;
 ConVar g_Cvar_RandomStartTime;
+ConVar g_Cvar_CountBots;
 
 Handle g_VoteTimer = INVALID_HANDLE;
 Handle g_RetryTimer = INVALID_HANDLE;
@@ -141,6 +143,9 @@ bool g_MapVoteCompleted;
 bool g_ChangeMapAtRoundEnd;
 bool g_ChangeMapInProgress;
 bool g_HasIntermissionStarted = false;
+#if defined _zleader_included
+bool g_ZLeader = false;
+#endif
 int g_mapFileSerial = -1;
 
 int g_NominateCount = 0;
@@ -257,6 +262,7 @@ public void OnPluginStart()
 	g_Cvar_Extend = CreateConVar("mce_extend", "0", "Number of extensions allowed each map.", _, true, 0.0);
 	g_Cvar_DontChange = CreateConVar("mce_dontchange", "1", "Specifies if a 'Don't Change' option should be added to early votes", _, true, 0.0);
 	g_Cvar_VoteDuration = CreateConVar("mce_voteduration", "20", "Specifies how long the mapvote should be available for.", _, true, 5.0);
+	g_Cvar_CountBots = CreateConVar("mce_count_bots", "1", "Should we count bots as players for Min/MaxPlayers ?", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 
 	// MapChooser Extended cvars
 	CreateConVar("mce_version", MCE_VERSION, "MapChooser Extended Version", FCVAR_SPONLY|FCVAR_NOTIFY|FCVAR_DONTRECORD);
@@ -438,12 +444,32 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetMapGroups", Native_GetMapGroups);
 	CreateNative("GetMapGroupRestriction", Native_GetMapGroupRestriction);
 	CreateNative("GetMapVIPRestriction", Native_GetMapVIPRestriction);
+	#if defined _zleader_included
+	CreateNative("GetMapLeaderRestriction", Native_GetMapLeaderRestriction);
+	#endif
 	CreateNative("GetExtendsLeft", Native_GetExtendsLeft);
 	CreateNative("AreRestrictionsActive", Native_AreRestrictionsActive);
 	CreateNative("SimulateMapEnd", Native_SimulateMapEnd);
 
 	return APLRes_Success;
 }
+
+#if defined _zleader_included
+public void OnAllPluginsLoaded()
+{
+	g_ZLeader = LibraryExists("zleader");
+}
+public void OnLibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "zleader"))
+		g_ZLeader = false;
+}
+public void OnLibraryAdded(const char[] name)
+{
+	if (StrEqual(name, "zleader"))
+		g_ZLeader = true;
+}
+#endif
 
 public void OnMapStart()
 {
@@ -889,12 +915,13 @@ public void Event_WinPanel(Handle event, const char[] name, bool dontBroadcast)
 			ClearSyncHud(i, g_hHud);
 			ShowSyncHudText(i, g_hHud, "Next Map: %s", nextMap);
 		}
-		delete g_hHud;
 	}
 
 	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
 	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);	
 	CPrintToChatAll("{lightgreen}Next Map: {green}%s", nextMap);
+
+	delete g_hHud;
 }
 
 /* You ask, why don't you just use team_score event? And I answer... Because CSS doesn't. */
@@ -1562,6 +1589,12 @@ public int Handler_MapVoteMenu(Handle menu, MenuAction action, int param1, int p
 				{
 					Format(buffer, sizeof(buffer), "%s (%T)", map, "VIP Nomination", param1);
 				}
+				#if defined _zleader_included
+				else if(InternalGetMapLeaderRestriction(map))
+				{
+					Format(buffer, sizeof(buffer), "%s (%T)", map, "Leader Nomination", param1);
+				}
+				#endif
 			}
 
 			if(buffer[0] != '\0')
@@ -1739,6 +1772,11 @@ void CreateNextVote()
 
 			if(InternalGetMapVIPRestriction(map))
 				continue;
+
+			#if defined _zleader_included
+			if(InternalGetMapLeaderRestriction(map))
+				continue;
+			#endif
 
 			if(InternalGetMapTimeRestriction(map) != 0)
 				continue;
@@ -2451,6 +2489,31 @@ public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 	return InternalGetMapVIPRestriction(map);
 }
 
+#if defined _zleader_included
+public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(2);
+	int len;
+	GetNativeStringLength(1, len);
+
+	if(len <= 0)
+		return false;
+
+	char[] map = new char[len+1];
+	GetNativeString(1, map, len+1);
+
+	// Check if client should bypass leader restrictions
+	if(client >= 1 && client <= MaxClients)
+	{
+		// Client has leader.ini access, dont return leader restrictions
+		if(g_ZLeader && ZL_IsPossibleLeader(client))
+			return false;
+	}
+
+	return InternalGetMapLeaderRestriction(map);
+}
+#endif
+
 public int Native_GetExtendsLeft(Handle plugin, int numParams)
 {
 	return GetConVarInt(g_Cvar_Extend) - g_Extends;
@@ -2739,7 +2802,7 @@ stock int InternalGetMapTimeRestriction(const char[] map)
 // >0 = More than MaxPlayers
 stock int InternalGetMapPlayerRestriction(const char[] map)
 {
-	int NumPlayers = GetClientCount(false);
+	int NumPlayers = GetClientCountEx(g_Cvar_CountBots.BoolValue);
 	int MinPlayers = InternalGetMapMinPlayers(map);
 	int MaxPlayers = InternalGetMapMaxPlayers(map);
 
@@ -2750,6 +2813,24 @@ stock int InternalGetMapPlayerRestriction(const char[] map)
 		return NumPlayers - MaxPlayers;
 
 	return 0;
+}
+
+stock int GetClientCountEx(bool countBots)
+{
+	int iRealClients = 0;
+	int iFakeClients = 0;
+
+	for (int player = 1; player <= MaxClients; player++)
+	{
+		if (IsClientConnected(player))
+		{
+			if (IsFakeClient(player))
+				iFakeClients++;
+			else
+				iRealClients++;
+		}
+	}
+	return countBots ? iFakeClients + iRealClients : iRealClients;
 }
 
 stock bool InternalAreRestrictionsActive()
@@ -2799,6 +2880,21 @@ stock bool InternalGetMapVIPRestriction(const char[] map)
 
 	return view_as<bool>(VIP);
 }
+
+#if defined _zleader_included
+stock bool InternalGetMapLeaderRestriction(const char[] map)
+{
+	int Leader = 0;
+
+	if(g_Config && g_Config.JumpToKey(map))
+	{
+		Leader = g_Config.GetNum("Leader", Leader);
+		g_Config.Rewind();
+	}
+
+	return view_as<bool>(Leader);
+}
+#endif
 
 stock void InternalRestoreMapCooldowns()
 {
