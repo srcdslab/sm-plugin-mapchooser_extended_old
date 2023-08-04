@@ -1207,6 +1207,13 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				return RedrawMenuItem(buffer);
 			}
 
+			#if defined _zleader_included
+			if(RestrictionsActive && LeaderRestriction)
+			{
+				return RedrawMenuItem(buffer);
+			}
+			#endif
+
 			if(mark && !official)
 				return RedrawMenuItem(buffer);
 
