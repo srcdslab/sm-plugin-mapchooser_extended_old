@@ -45,7 +45,7 @@
 #include <basecomm>
 #include <multicolors>
 
-#define NE_VERSION "1.3.4"
+#define NE_VERSION "1.3.5"
 
 public Plugin myinfo =
 {
