@@ -116,10 +116,20 @@
 	{
 		"en"		"VIP"
 	}
+    
+    "Leader Nomination"
+	{
+		"en"		"Leader"
+	}
 
 	"Map Nominate VIP Error"
 	{
 		"en"		"Only VIPs can nominate this map."
+	}
+    
+    "Map Nominate Leader Error"
+	{
+		"en"		"Only Leaders can nominate this map."
 	}
 
 	"Map Nominate Time Error"
@@ -167,6 +177,11 @@
 	"VIP Restriction"
 	{
 		"en"		"VIP only"
+	}
+    
+    "Leader Restriction"
+	{
+		"en"		"Leader only"
 	}
 
 	"Nomination Removed Time Error"
