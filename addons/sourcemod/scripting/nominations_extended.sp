@@ -45,7 +45,7 @@
 #include <basecomm>
 #include <multicolors>
 
-#define NE_VERSION "1.3.5"
+#define NE_VERSION "1.3.6"
 
 public Plugin myinfo =
 {
@@ -296,7 +296,8 @@ public Action Command_Addmap(int client, int args)
 	static char mapname[PLATFORM_MAX_PATH];
 	GetCmdArg(1, mapname, sizeof(mapname));
 
-	if(!IsMapValid(mapname))
+	int status;
+	if(!GetTrieValue(g_mapTrie, mapname, status))
 	{
 		CReplyToCommand(client, "{green}[NE]{default} %t", "Map Not In Pool", mapname);
 		AttemptAdminNominate(client, mapname);
@@ -307,7 +308,6 @@ public Action Command_Addmap(int client, int args)
 	{
 		bool RestrictionsActive = AreRestrictionsActive();
 
-		int status;
 		if(GetTrieValue(g_mapTrie, mapname, status))
 		{
 			if((status & MAPSTATUS_DISABLED) == MAPSTATUS_DISABLED)
@@ -366,6 +366,12 @@ public Action Command_Addmap(int client, int args)
 
 	NominateResult result = NominateMap(mapname, true, 0);
 
+	if(result > Nominate_InvalidMap)
+	{
+		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
+		return Plugin_Handled;
+	}
+
 	if(result > Nominate_Replaced)
 	{
 		/* We assume already in vote is the casue because the maplist does a Map Validity check and we forced, so it can't be full */
@@ -401,8 +407,8 @@ public Action Command_Removemap(int client, int args)
 	static char mapname[PLATFORM_MAX_PATH];
 	GetCmdArg(1, mapname, sizeof(mapname));
 
-	// int status;
-	if(/*!GetTrieValue(g_mapTrie, mapname, status)*/!IsMapValid(mapname))
+	int status;
+	if(!GetTrieValue(g_mapTrie, mapname, status))
 	{
 		CReplyToCommand(client, "{green}[NE]{default} %t", "Map was not found", mapname);
 		AttemptAdminRemoveMap(client, mapname);
