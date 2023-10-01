@@ -1283,7 +1283,8 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 		ClearArray(g_NominateList);
 
 		if(!extendFirst) {
-			FormatEx(allMapsBuffer, allMapsSize, "%s\n- %s", allMapsBuffer, "Extend");
+			if (GetConVarInt(g_Cvar_Extend) - g_Extends > 0)
+				FormatEx(allMapsBuffer, allMapsSize, "%s\n- %s", allMapsBuffer, "Extend");
 			AddExtendToMenu(g_VoteMenu, when);
 			MenuRandomShuffleStop++;
 		}
@@ -1314,7 +1315,9 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 			}
 			else if(StrEqual(map, VOTE_EXTEND))
 			{
-				FormatEx(allMapsBuffer, allMapsSize, "%s\n- %s", allMapsBuffer, "Extend");				
+				if (GetConVarInt(g_Cvar_Extend) - g_Extends > 0)
+					FormatEx(allMapsBuffer, allMapsSize, "%s\n- %s", allMapsBuffer, "Extend");
+
 				AddMenuItem(g_VoteMenu, VOTE_EXTEND, "Extend Map");
 			}
 		}
