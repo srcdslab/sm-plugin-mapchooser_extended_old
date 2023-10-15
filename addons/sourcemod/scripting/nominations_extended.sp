@@ -45,7 +45,7 @@
 #include <basecomm>
 #include <multicolors>
 
-#define NE_VERSION "1.3.6"
+#define NE_VERSION "1.3.7"
 
 public Plugin myinfo =
 {
@@ -730,7 +730,7 @@ public Action Command_Nominate(int client, int args)
 	else if(result == Nominate_Replaced)
 		CPrintToChatAll("{green}[NE]{default} %t", "Map Nomination Changed", name, mapname);
 
-	LogMessage("%s nominated %s", name, mapname);
+	LogMessage("%L nominated %s", client, mapname);
 
 	g_Player_NominationDelay[client] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
 
@@ -1051,7 +1051,7 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 			else if(result == Nominate_Replaced)
 				CPrintToChatAll("{green}[NE]{default} %t", "Map Nomination Changed", name, map);
 
-			LogMessage("%s nominated %s", name, map);
+			LogMessage("%L nominated %s", param1, map);
 			g_Player_NominationDelay[param1] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
 		}
 
