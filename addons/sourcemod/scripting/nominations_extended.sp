@@ -45,7 +45,7 @@
 #include <basecomm>
 #include <multicolors>
 
-#define NE_VERSION "1.3.7"
+#define NE_VERSION "1.3.8"
 
 public Plugin myinfo =
 {
@@ -85,6 +85,12 @@ Handle g_Cvar_VIPTimeframe = INVALID_HANDLE;
 Handle g_Cvar_VIPTimeframeMinTime = INVALID_HANDLE;
 Handle g_Cvar_VIPTimeframeMaxTime = INVALID_HANDLE;
 Handle g_hDelayNominate = INVALID_HANDLE;
+
+// Forwards
+Handle g_hOnPublicMapInsert = INVALID_HANDLE;
+Handle g_hOnPublicMapReplaced = INVALID_HANDLE;
+Handle g_hOnAdminMapInsert = INVALID_HANDLE;
+Handle g_hOnAdminMapRemove = INVALID_HANDLE;
 
 int g_Player_NominationDelay[MAXPLAYERS+1];
 int g_NominationDelay;
@@ -144,6 +150,11 @@ public APLRes AskPluginLoad2(Handle hThis, bool bLate, char[] err, int iErrLen)
 	CreateNative("RemoveMapFromNominationPool", Native_RemoveMapFromNominationPool);
 	CreateNative("RemoveMapsFromNominationPool", Native_RemoveMapsFromNominationPool);
 	CreateNative("ToggleNominations", Native_ToggleNominations);
+
+	g_hOnPublicMapInsert = CreateGlobalForward("NE_OnPublicMapInsert", ET_Ignore, Param_Cell, Param_String, Param_Cell, Param_Cell);
+	g_hOnPublicMapReplaced = CreateGlobalForward("NE_OnPublicMapReplaced", ET_Ignore, Param_Cell, Param_String, Param_Cell, Param_Cell);
+	g_hOnAdminMapInsert = CreateGlobalForward("NE_OnAdminMapInsert", ET_Ignore, Param_Cell, Param_String);
+	g_hOnAdminMapRemove = CreateGlobalForward("NE_OnAdminMapRemove", ET_Ignore, Param_Cell, Param_String);
 
 	return APLRes_Success;
 }
@@ -380,13 +391,14 @@ public Action Command_Addmap(int client, int args)
 		return Plugin_Handled;
 	}
 
+	/* Map was nominated! - Disable the menu item and update the trie */
 	SetTrieValue(g_mapTrie, mapname, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
 
 	CReplyToCommand(client, "{green}[NE]{default} %t", "Map Inserted", mapname);
-	LogAction(client, -1, "\"%L\" inserted map \"%s\".", client, mapname);
-
 	CPrintToChatAll("{green}[NE]{default} %N has inserted %s into nominations", client, mapname);
 
+	LogAction(client, -1, "\"%L\" has inserted map \"%s\".", client, mapname);
+	Forward_OnAdminMapInsert(client, mapname);
 	return Plugin_Handled;
 }
 
@@ -423,7 +435,8 @@ public Action Command_Removemap(int client, int args)
 	}
 
 	CReplyToCommand(client, "{green}[NE]{default} Map '%s' removed from the nominations list.", mapname);
-	LogAction(client, -1, "\"%L\" removed map \"%s\" from nominations.", client, mapname);
+	LogAction(client, -1, "\"%L\" has removed map \"%s\" from nominations.", client, mapname);
+	Forward_OnAdminMapRemove(client, mapname);
 
 	CPrintToChatAll("{green}[NE]{default} %N has removed %s from nominations", client, mapname);
 
@@ -719,20 +732,24 @@ public Action Command_Nominate(int client, int args)
 	}
 
 	/* Map was nominated! - Disable the menu item and update the trie */
-
 	SetTrieValue(g_mapTrie, mapname, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
+	g_Player_NominationDelay[client] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
 
 	static char name[MAX_NAME_LENGTH];
 	GetClientName(client, name, sizeof(name));
 
 	if(result == Nominate_Added)
+	{
 		CPrintToChatAll("{green}[NE]{default} %t", "Map Nominated", name, mapname);
+		LogMessage("%L has nominated %s", client, mapname);
+		Forward_OnPublicMapInsert(client, mapname, IsMapVIPRestricted(mapname), IsMapLeaderRestricted(mapname));
+	}
 	else if(result == Nominate_Replaced)
+	{
 		CPrintToChatAll("{green}[NE]{default} %t", "Map Nomination Changed", name, mapname);
-
-	LogMessage("%L nominated %s", client, mapname);
-
-	g_Player_NominationDelay[client] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
+		LogMessage("%L has changed their nomination to %s", client, mapname);
+		Forward_OnPublicMapReplaced(client, mapname, IsMapVIPRestricted(mapname), IsMapLeaderRestricted(mapname));
+	}
 
 	return Plugin_Continue;
 }
@@ -1044,15 +1061,22 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				return 0;
 			}
 
+			/* Map was nominated! - Disable the menu item and update the trie */
 			SetTrieValue(g_mapTrie, map, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
+			g_Player_NominationDelay[param1] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
 
 			if(result == Nominate_Added)
+			{
 				CPrintToChatAll("{green}[NE]{default} %t", "Map Nominated", name, map);
+				LogMessage("%L has nominated %s", param1, map);
+				Forward_OnPublicMapInsert(param1, map, IsMapVIPRestricted(map), IsMapLeaderRestricted(map));
+			}
 			else if(result == Nominate_Replaced)
+			{
 				CPrintToChatAll("{green}[NE]{default} %t", "Map Nomination Changed", name, map);
-
-			LogMessage("%L nominated %s", param1, map);
-			g_Player_NominationDelay[param1] = GetTime() + GetConVarInt(g_Cvar_NominateDelay);
+				LogMessage("%L has changed their nomination to %s", param1, map);
+				Forward_OnPublicMapReplaced(param1, map, IsMapVIPRestricted(map), IsMapLeaderRestricted(map));
+			}
 		}
 
 		case MenuAction_DrawItem:
@@ -1330,12 +1354,14 @@ public int Handler_AdminMapSelectMenu(Menu menu, MenuAction action, int param1, 
 				return 0;
 			}
 
+			/* Map was nominated! - Disable the menu item and update the trie */
 			SetTrieValue(g_mapTrie, map, MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_NOMINATED);
 
 			CPrintToChat(param1, "{green}[NE]{default} %t", "Map Inserted", map);
-			LogAction(param1, -1, "[NE] \"%L\" inserted map \"%s\".", param1, map);
-
 			CPrintToChatAll("{green}[NE]{default} %N has inserted %s into nominations", param1, map);
+
+			LogAction(param1, -1, "[NE] \"%L\" has inserted map \"%s\".", param1, map);
+			Forward_OnAdminMapInsert(param1, map);
 		}
 
 		case MenuAction_DrawItem:
@@ -1377,9 +1403,10 @@ public int Handler_AdminRemoveMapMenu(Menu menu, MenuAction action, int param1, 
 			}
 
 			CReplyToCommand(param1, "{green}[NE]{default} Map '%s' removed from the nominations list.", map);
-			LogAction(param1, -1, "\"%L\" removed map \"%s\" from nominations.", param1, map);
-
 			CPrintToChatAll("{green}[NE]{default} %N has removed %s from nominations", param1, map);
+
+			LogAction(param1, -1, "\"%L\" has removed map \"%s\" from nominations.", param1, map);
+			Forward_OnAdminMapRemove(param1, map);
 		}
 	}
 
@@ -1545,4 +1572,40 @@ stock int TimeStrToSeconds(const char[] str)
 		seconds += val * 60;
 	}
 	return seconds;
+}
+
+stock void Forward_OnPublicMapInsert(int client, char[] mapname, bool IsVIP, bool IsLeader)
+{
+	Call_StartForward(g_hOnPublicMapInsert);
+	Call_PushCell(client);
+	Call_PushString(mapname);
+	Call_PushCell(IsVIP);
+	Call_PushCell(IsLeader);
+	Call_Finish();
+}
+
+stock void Forward_OnPublicMapReplaced(int client, char[] mapname, bool IsVIP, bool IsLeader)
+{
+	Call_StartForward(g_hOnPublicMapReplaced);
+	Call_PushCell(client);
+	Call_PushString(mapname);
+	Call_PushCell(IsVIP);
+	Call_PushCell(IsLeader);
+	Call_Finish();
+}
+
+stock void Forward_OnAdminMapInsert(int client, char[] mapname)
+{
+	Call_StartForward(g_hOnAdminMapInsert);
+	Call_PushCell(client);
+	Call_PushString(mapname);
+	Call_Finish();
+}
+
+stock void Forward_OnAdminMapRemove(int client, char[] mapname)
+{
+	Call_StartForward(g_hOnAdminMapRemove);
+	Call_PushCell(client);
+	Call_PushString(mapname);
+	Call_Finish();
 }
