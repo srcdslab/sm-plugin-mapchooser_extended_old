@@ -79,6 +79,12 @@ forward void OnMapVoteStart();
 forward void OnMapVoteEnd(const char[] map);
 
 /**
+ * Called when a client who own a nomination disconnect
+ */
+forward void OnNominationDisconnect(char[] oldmap, int owner);
+
+
+/**
  * Is a map on the current game's official list?
  * This should be treated as informative only.
  *
@@ -133,11 +139,13 @@ native int GetMapGroups(const char[] map, int[] groups, int size);
 // >=0 = Group _max -> Group full
 native int GetMapGroupRestriction(const char[] map, int client = 0);
 
+native bool IsMapVIPRestricted(const char[] map);
+
 native bool GetMapVIPRestriction(const char[] map, int client = 0);
 
+native bool IsMapLeaderRestricted(const char[] map);
+
 native bool GetMapLeaderRestriction(const char[] map, int client = 0);
-
-
 
 /**
  * Amount of Extends left on the current map

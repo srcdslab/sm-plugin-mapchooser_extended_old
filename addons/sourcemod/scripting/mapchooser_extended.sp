@@ -57,7 +57,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MCE_VERSION "1.3.5"
+#define MCE_VERSION "1.3.6"
 
 enum RoundCounting
 {
@@ -153,6 +153,7 @@ int g_NominateReservedCount = 0;
 MapChange g_ChangeTime;
 
 Handle g_NominationsResetForward = INVALID_HANDLE;
+Handle g_NominationDisconnect = INVALID_HANDLE;
 Handle g_MapVoteStartedForward = INVALID_HANDLE;
 
 /* Mapchooser Extended Plugin ConVars */
@@ -394,6 +395,7 @@ public void OnPluginStart()
 		SetConVarBounds(g_Cvar_Bonusroundtime, ConVarBound_Upper, true, 30.0);
 
 	g_NominationsResetForward = CreateGlobalForward("OnNominationRemoved", ET_Ignore, Param_String, Param_Cell);
+	g_NominationDisconnect= CreateGlobalForward("OnNominationDisconnect", ET_Ignore, Param_String, Param_Cell);
 	g_MapVoteStartedForward = CreateGlobalForward("OnMapVoteStarted", ET_Ignore);
 
 	//MapChooser Extended Forwards
@@ -444,8 +446,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetMapGroups", Native_GetMapGroups);
 	CreateNative("GetMapGroupRestriction", Native_GetMapGroupRestriction);
 	CreateNative("GetMapVIPRestriction", Native_GetMapVIPRestriction);
+	CreateNative("IsMapVIPRestricted", Native_IsMapVIPRestricted);
 	#if defined _zleader_included
 	CreateNative("GetMapLeaderRestriction", Native_GetMapLeaderRestriction);
+	CreateNative("IsMapLeaderRestricted", Native_IsMapLeaderRestricted);
 	#endif
 	CreateNative("GetExtendsLeft", Native_GetExtendsLeft);
 	CreateNative("AreRestrictionsActive", Native_AreRestrictionsActive);
@@ -635,10 +639,8 @@ public void OnClientDisconnect(int client)
 
 	char oldmap[PLATFORM_MAX_PATH];
 	GetArrayString(g_NominateList, index, oldmap, PLATFORM_MAX_PATH);
-	Call_StartForward(g_NominationsResetForward);
-	Call_PushString(oldmap);
-	Call_PushCell(GetArrayCell(g_NominateOwners, index));
-	Call_Finish();
+	Forward_OnNominationRemoved(oldmap, GetArrayCell(g_NominateOwners, index));
+	Forward_OnNominationDisconnect(oldmap, GetArrayCell(g_NominateOwners, index));
 
 	RemoveFromArray(g_NominateOwners, index);
 	RemoveFromArray(g_NominateList, index);
@@ -1197,10 +1199,7 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 			RemoveStringFromArray(g_NextMapList, map);
 
 			/* Notify Nominations that this map is now free */
-			Call_StartForward(g_NominationsResetForward);
-			Call_PushString(map);
-			Call_PushCell(GetArrayCell(g_NominateOwners, i));
-			Call_Finish();
+			Forward_OnNominationRemoved(map, GetArrayCell(g_NominateOwners, i));
 		}
 
 		/* Clear out the rest of the nominations array */
@@ -1210,10 +1209,7 @@ void InitiateVote(MapChange when, Handle inputlist=INVALID_HANDLE)
 			/* These maps shouldn't be excluded from the vote as they weren't really nominated at all */
 
 			/* Notify Nominations that this map is now free */
-			Call_StartForward(g_NominationsResetForward);
-			Call_PushString(map);
-			Call_PushCell(GetArrayCell(g_NominateOwners, i));
-			Call_Finish();
+			Forward_OnNominationRemoved(map, GetArrayCell(g_NominateOwners, i));
 		}
 
 		/* There should currently be 'nominationsToAdd' unique maps in the vote */
@@ -1851,10 +1847,7 @@ NominateResult InternalNominateMap(char[] map, bool force, int owner)
 	{
 		char oldmap[PLATFORM_MAX_PATH];
 		GetArrayString(g_NominateList, index, oldmap, PLATFORM_MAX_PATH);
-		Call_StartForward(g_NominationsResetForward);
-		Call_PushString(oldmap);
-		Call_PushCell(owner);
-		Call_Finish();
+		Forward_OnNominationRemoved(oldmap, owner);
 
 		SetArrayString(g_NominateList, index, map);
 		return Nominate_Replaced;
@@ -1877,11 +1870,9 @@ NominateResult InternalNominateMap(char[] map, bool force, int owner)
 	{
 		char oldmap[PLATFORM_MAX_PATH];
 		GetArrayString(g_NominateList, 0, oldmap, PLATFORM_MAX_PATH);
-		Call_StartForward(g_NominationsResetForward);
-		Call_PushString(oldmap);
 		int owner_ = GetArrayCell(g_NominateOwners, 0);
-		Call_PushCell(owner_);
-		Call_Finish();
+
+		Forward_OnNominationRemoved(oldmap, owner_);
 
 		RemoveFromArray(g_NominateList, 0);
 		RemoveFromArray(g_NominateOwners, 0);
@@ -1920,10 +1911,7 @@ bool InternalRemoveNominationByMap(char[] map)
 
 		if(strcmp(map, oldmap, false) == 0)
 		{
-			Call_StartForward(g_NominationsResetForward);
-			Call_PushString(oldmap);
-			Call_PushCell(GetArrayCell(g_NominateOwners, i));
-			Call_Finish();
+			Forward_OnNominationRemoved(oldmap, GetArrayCell(g_NominateOwners, i));
 
 			int owner = GetArrayCell(g_NominateOwners, i);
 			if(owner)
@@ -1965,10 +1953,7 @@ bool InternalRemoveNominationByOwner(int owner)
 		char oldmap[PLATFORM_MAX_PATH];
 		GetArrayString(g_NominateList, index, oldmap, PLATFORM_MAX_PATH);
 
-		Call_StartForward(g_NominationsResetForward);
-		Call_PushString(oldmap);
-		Call_PushCell(owner);
-		Call_Finish();
+		Forward_OnNominationRemoved(oldmap, owner);
 
 		RemoveFromArray(g_NominateList, index);
 		RemoveFromArray(g_NominateOwners, index);
@@ -2492,6 +2477,19 @@ public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 	return InternalGetMapVIPRestriction(map);
 }
 
+public int Native_IsMapVIPRestricted(Handle plugin, int numParams)
+{
+	int len;
+	GetNativeStringLength(1, len);
+
+	if(len <= 0)return false;
+
+	char[] map = new char[len+1];
+	GetNativeString(1, map, len+1);
+
+	return InternalGetMapVIPRestriction(map);
+}
+
 #if defined _zleader_included
 public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 {
@@ -2512,6 +2510,19 @@ public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 		if(g_ZLeader && ZL_IsPossibleLeader(client))
 			return false;
 	}
+
+	return InternalGetMapLeaderRestriction(map);
+}
+
+public int Native_IsMapLeaderRestricted(Handle plugin, int numParams)
+{
+	int len;
+	GetNativeStringLength(1, len);
+
+	if(len <= 0) return false;
+
+	char[] map = new char[len+1];
+	GetNativeString(1, map, len+1);
 
 	return InternalGetMapLeaderRestriction(map);
 }
@@ -2651,10 +2662,7 @@ void CheckMapRestrictions(bool time = false, bool players = false)
 
 		if (remove)
 		{
-			Call_StartForward(g_NominationsResetForward);
-			Call_PushString(map);
-			Call_PushCell(GetArrayCell(g_NominateOwners, i));
-			Call_Finish();
+			Forward_OnNominationRemoved(map, GetArrayCell(g_NominateOwners, i));
 
 			RemoveFromArray(g_NominateList, i);
 			RemoveFromArray(g_NominateOwners, i);
@@ -3034,4 +3042,20 @@ stock int TimeStrToSeconds(const char[] str)
 		seconds += val * 60;
 	}
 	return seconds;
+}
+
+stock void Forward_OnNominationRemoved(char[] oldmap, int owner)
+{
+	Call_StartForward(g_NominationsResetForward);
+	Call_PushString(oldmap);
+	Call_PushCell(owner);
+	Call_Finish();
+}
+
+stock void Forward_OnNominationDisconnect(char[] oldmap, int owner)
+{
+	Call_StartForward(g_NominationDisconnect);
+	Call_PushString(oldmap);
+	Call_PushCell(owner);
+	Call_Finish();
 }
