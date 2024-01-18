@@ -139,6 +139,10 @@ native int GetMapGroups(const char[] map, int[] groups, int size);
 // >=0 = Group _max -> Group full
 native int GetMapGroupRestriction(const char[] map, int client = 0);
 
+native bool IsMapAdminRestricted(const char[] map);
+
+native bool GetMapAdminRestriction(const char[] map, int client = 0);
+
 native bool IsMapVIPRestricted(const char[] map);
 
 native bool GetMapVIPRestriction(const char[] map, int client = 0);

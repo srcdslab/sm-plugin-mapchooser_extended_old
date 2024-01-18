@@ -57,7 +57,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MCE_VERSION "1.3.6"
+#define MCE_VERSION "1.3.7"
 
 enum RoundCounting
 {
@@ -445,6 +445,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetMapPlayerRestriction", Native_GetMapPlayerRestriction);
 	CreateNative("GetMapGroups", Native_GetMapGroups);
 	CreateNative("GetMapGroupRestriction", Native_GetMapGroupRestriction);
+	CreateNative("GetMapAdminRestriction", Native_GetMapAdminRestriction);
+	CreateNative("IsMapAdminRestricted", Native_IsMapAdminRestricted);
 	CreateNative("GetMapVIPRestriction", Native_GetMapVIPRestriction);
 	CreateNative("IsMapVIPRestricted", Native_IsMapVIPRestricted);
 	#if defined _zleader_included
@@ -2450,6 +2452,46 @@ public int Native_GetMapGroupRestriction(Handle plugin, int numParams)
 	return -1;
 }
 
+public int Native_GetMapAdminRestriction(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(2);
+	int len;
+	GetNativeStringLength(1, len);
+
+	if(len <= 0)
+		return false;
+
+	char[] map = new char[len+1];
+	GetNativeString(1, map, len+1);
+
+	// Check if client should bypass admin restrictions
+	if(client >= 1 && client <= MaxClients)
+	{
+		// Client has bypass flag, dont return admin restrictions
+		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
+			return false;
+
+		// Client has ban flag, dont return admin restrictions
+		if(CheckCommandAccess(client, "sm_nominate_ban", ADMFLAG_BAN))
+			return false;
+	}
+
+	return InternalGetMapAdminRestriction(map);
+}
+
+public int Native_IsMapAdminRestricted(Handle plugin, int numParams)
+{
+	int len;
+	GetNativeStringLength(1, len);
+
+	if(len <= 0)return false;
+
+	char[] map = new char[len+1];
+	GetNativeString(1, map, len+1);
+
+	return InternalGetMapAdminRestriction(map);
+}
+
 public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(2);
@@ -2877,6 +2919,19 @@ stock int FindIntInArray(int[] array, int size, int value)
 	}
 
 	return -1;
+}
+
+stock bool InternalGetMapAdminRestriction(const char[] map)
+{
+	int Admin = 0;
+
+	if(g_Config && g_Config.JumpToKey(map))
+	{
+		Admin = g_Config.GetNum("Admin", Admin);
+		g_Config.Rewind();
+	}
+
+	return view_as<bool>(Admin);
 }
 
 stock bool InternalGetMapVIPRestriction(const char[] map)

@@ -63,7 +63,7 @@
 	"Revote Is Needed"
 	{
 		"#format"	"{1:i}"
-		"en"		"No map has received more than {1}%% of the vote.\nSo, which map will win? A revote is needed!"
+		"en"		"No map has received more than {1}%% of the vote.\n{green}[MCE] {default}So, which map will win? A revote is needed!"
 	}
 
 	"Revote Warning"
@@ -97,7 +97,7 @@
 	"Tie Vote"
 	{
 		"#format"	"{1:i}"
-		"en"		"The top {1} maps had the same number of votes.\nA revote is needed!"
+		"en"		"The top {1} maps had the same number of votes.\n{green}[MCE] {default}A revote is needed!"
 	}
 
 	"Custom Marked"
@@ -112,6 +112,16 @@
 		"en"		"This map is on cooldown for the next {1} hours and {2} minutes."
 	}
 
+	"Nominated by Admin"
+	{
+		"en"		"Admin Nomination"
+	}
+
+	"Admin Nomination"
+	{
+		"en"		"Admin"
+	}
+
 	"VIP Nomination"
 	{
 		"en"		"VIP"
@@ -120,6 +130,11 @@
     "Leader Nomination"
 	{
 		"en"		"Leader"
+	}
+
+	"Map Nominate Admin Error"
+	{
+		"en"		"Only Admins can nominate this map."
 	}
 
 	"Map Nominate VIP Error"
@@ -172,6 +187,11 @@
 	{
 		"#format"	"{1:d}"
 		"en"		"Group max: {1}"
+	}
+
+	"Admin Restriction"
+	{
+		"en"		"Admin only"
 	}
 
 	"VIP Restriction"
