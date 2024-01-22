@@ -2465,16 +2465,16 @@ public int Native_GetMapAdminRestriction(Handle plugin, int numParams)
 	GetNativeString(1, map, len+1);
 
 	// Check if client should bypass admin restrictions
-	if(client >= 1 && client <= MaxClients)
-	{
-		// Client has bypass flag, dont return admin restrictions
-		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
-			return false;
+	if(client < 0 || client > MaxClients)
+		return false;
 
-		// Client has ban flag, dont return admin restrictions
-		if(CheckCommandAccess(client, "sm_nominate_ban", ADMFLAG_BAN))
-			return false;
-	}
+	// Client has bypass flag, dont return admin restrictions
+	if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
+		return false;
+
+	// Client has ban flag, dont return admin restrictions
+	if(CheckCommandAccess(client, "sm_nominate_ban", ADMFLAG_BAN))
+		return false;
 
 	return InternalGetMapAdminRestriction(map);
 }
@@ -2484,7 +2484,8 @@ public int Native_IsMapAdminRestricted(Handle plugin, int numParams)
 	int len;
 	GetNativeStringLength(1, len);
 
-	if(len <= 0)return false;
+	if(len <= 0)
+		return false;
 
 	char[] map = new char[len+1];
 	GetNativeString(1, map, len+1);
@@ -2505,16 +2506,16 @@ public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 	GetNativeString(1, map, len+1);
 
 	// Check if client should bypass vip restrictions
-	if(client >= 1 && client <= MaxClients)
-	{
-		// Client has bypass flag, dont return vip restrictions
-		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
-			return false;
+	if(client < 0 || client > MaxClients)
+		return false;
+	
+	// Client has bypass flag, dont return vip restrictions
+	if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
+		return false;
 
-		// Client has vip flag, dont return vip restrictions
-		if(CheckCommandAccess(client, "sm_nominate_vip", ADMFLAG_CUSTOM1))
-			return false;
-	}
+	// Client has vip flag, dont return vip restrictions
+	if(CheckCommandAccess(client, "sm_nominate_vip", ADMFLAG_CUSTOM1))
+		return false;
 
 	return InternalGetMapVIPRestriction(map);
 }
@@ -2546,12 +2547,12 @@ public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 	GetNativeString(1, map, len+1);
 
 	// Check if client should bypass leader restrictions
-	if(client >= 1 && client <= MaxClients)
-	{
-		// Client has leader.ini access, dont return leader restrictions
-		if(g_ZLeader && ZL_IsPossibleLeader(client))
-			return false;
-	}
+	if(client < 0 || client > MaxClients)
+		return false;
+	
+	// Client has leader.ini access, dont return leader restrictions
+	if(g_ZLeader && ZL_IsPossibleLeader(client))
+		return false;
 
 	return InternalGetMapLeaderRestriction(map);
 }
@@ -2923,15 +2924,15 @@ stock int FindIntInArray(int[] array, int size, int value)
 
 stock bool InternalGetMapAdminRestriction(const char[] map)
 {
-	int Admin = 0;
+	int iAdmin = 0;
 
 	if(g_Config && g_Config.JumpToKey(map))
 	{
-		Admin = g_Config.GetNum("Admin", Admin);
+		iAdmin = g_Config.GetNum("Admin", iAdmin);
 		g_Config.Rewind();
 	}
 
-	return view_as<bool>(Admin);
+	return view_as<bool>(iAdmin);
 }
 
 stock bool InternalGetMapVIPRestriction(const char[] map)
