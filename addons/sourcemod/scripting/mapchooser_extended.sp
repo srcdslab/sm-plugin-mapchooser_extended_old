@@ -2465,16 +2465,16 @@ public int Native_GetMapAdminRestriction(Handle plugin, int numParams)
 	GetNativeString(1, map, len+1);
 
 	// Check if client should bypass admin restrictions
-	if(client < 0 || client > MaxClients)
-		return false;
+	if(client >= 1 && client <= MaxClients)
+	{
+		// Client has bypass flag, dont return admin restrictions
+		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
+			return false;
 
-	// Client has bypass flag, dont return admin restrictions
-	if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
-		return false;
-
-	// Client has ban flag, dont return admin restrictions
-	if(CheckCommandAccess(client, "sm_nominate_ban", ADMFLAG_BAN))
-		return false;
+		// Client has ban flag, dont return admin restrictions
+		if(CheckCommandAccess(client, "sm_nominate_ban", ADMFLAG_BAN))
+			return false;
+	}
 
 	return InternalGetMapAdminRestriction(map);
 }
@@ -2506,16 +2506,16 @@ public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
 	GetNativeString(1, map, len+1);
 
 	// Check if client should bypass vip restrictions
-	if(client < 0 || client > MaxClients)
-		return false;
-	
-	// Client has bypass flag, dont return vip restrictions
-	if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
-		return false;
+	if(client >= 1 && client <= MaxClients)
+	{
+		// Client has bypass flag, dont return vip restrictions
+		if(CheckCommandAccess(client, "sm_nominate_ignore", ADMFLAG_GENERIC))
+			return false;
 
-	// Client has vip flag, dont return vip restrictions
-	if(CheckCommandAccess(client, "sm_nominate_vip", ADMFLAG_CUSTOM1))
-		return false;
+		// Client has vip flag, dont return vip restrictions
+		if(CheckCommandAccess(client, "sm_nominate_vip", ADMFLAG_CUSTOM1))
+			return false;
+	}
 
 	return InternalGetMapVIPRestriction(map);
 }
@@ -2547,12 +2547,12 @@ public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
 	GetNativeString(1, map, len+1);
 
 	// Check if client should bypass leader restrictions
-	if(client < 0 || client > MaxClients)
-		return false;
-	
-	// Client has leader.ini access, dont return leader restrictions
-	if(g_ZLeader && ZL_IsPossibleLeader(client))
-		return false;
+	if(client >= 1 && client <= MaxClients)
+	{
+		// Client has leader.ini access, dont return leader restrictions
+		if(g_ZLeader && ZL_IsPossibleLeader(client))
+			return false;
+	}
 
 	return InternalGetMapLeaderRestriction(map);
 }
