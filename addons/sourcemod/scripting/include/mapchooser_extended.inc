@@ -141,15 +141,15 @@ native int GetMapGroupRestriction(const char[] map, int client = 0);
 
 native bool IsMapAdminRestricted(const char[] map);
 
-native bool GetMapAdminRestriction(const char[] map, int client = 0);
+native bool IsClientMapAdminRestricted(const char[] map, int client = 0);
 
 native bool IsMapVIPRestricted(const char[] map);
 
-native bool GetMapVIPRestriction(const char[] map, int client = 0);
+native bool IsClientMapVIPRestricted(const char[] map, int client = 0);
 
 native bool IsMapLeaderRestricted(const char[] map);
 
-native bool GetMapLeaderRestriction(const char[] map, int client = 0);
+native bool IsClientMapLeaderRestricted(const char[] map, int client = 0);
 
 /**
  * Amount of Extends left on the current map
