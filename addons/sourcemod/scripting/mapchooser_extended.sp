@@ -57,7 +57,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MCE_VERSION "1.3.7"
+#define MCE_VERSION "1.3.8"
 
 enum RoundCounting
 {
@@ -445,12 +445,12 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetMapPlayerRestriction", Native_GetMapPlayerRestriction);
 	CreateNative("GetMapGroups", Native_GetMapGroups);
 	CreateNative("GetMapGroupRestriction", Native_GetMapGroupRestriction);
-	CreateNative("GetMapAdminRestriction", Native_GetMapAdminRestriction);
+	CreateNative("IsClientMapAdminRestricted", Native_IsClientMapAdminRestricted);
 	CreateNative("IsMapAdminRestricted", Native_IsMapAdminRestricted);
-	CreateNative("GetMapVIPRestriction", Native_GetMapVIPRestriction);
+	CreateNative("IsClientMapVIPRestricted", Native_IsClientMapVIPRestricted);
 	CreateNative("IsMapVIPRestricted", Native_IsMapVIPRestricted);
 	#if defined _zleader_included
-	CreateNative("GetMapLeaderRestriction", Native_GetMapLeaderRestriction);
+	CreateNative("IsClientMapLeaderRestricted", Native_IsClientMapLeaderRestricted);
 	CreateNative("IsMapLeaderRestricted", Native_IsMapLeaderRestricted);
 	#endif
 	CreateNative("GetExtendsLeft", Native_GetExtendsLeft);
@@ -2452,7 +2452,7 @@ public int Native_GetMapGroupRestriction(Handle plugin, int numParams)
 	return -1;
 }
 
-public int Native_GetMapAdminRestriction(Handle plugin, int numParams)
+public int Native_IsClientMapAdminRestricted(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(2);
 	int len;
@@ -2493,7 +2493,7 @@ public int Native_IsMapAdminRestricted(Handle plugin, int numParams)
 	return InternalGetMapAdminRestriction(map);
 }
 
-public int Native_GetMapVIPRestriction(Handle plugin, int numParams)
+public int Native_IsClientMapVIPRestricted(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(2);
 	int len;
@@ -2534,7 +2534,7 @@ public int Native_IsMapVIPRestricted(Handle plugin, int numParams)
 }
 
 #if defined _zleader_included
-public int Native_GetMapLeaderRestriction(Handle plugin, int numParams)
+public int Native_IsClientMapLeaderRestricted(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(2);
 	int len;

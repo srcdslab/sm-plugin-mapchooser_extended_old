@@ -45,7 +45,7 @@
 #include <basecomm>
 #include <multicolors>
 
-#define NE_VERSION "1.3.9"
+#define NE_VERSION "1.3.10"
 
 public Plugin myinfo =
 {
@@ -675,7 +675,7 @@ public Action Command_Nominate(int client, int args)
 		return Plugin_Handled;
 	}
 
-	bool adminRestriction = GetMapAdminRestriction(mapname, client);
+	bool adminRestriction = IsClientMapAdminRestricted(mapname, client);
 	if(restrictionsActive && adminRestriction)
 	{
 		CPrintToChat(client, "{green}[NE]{default} %t", "Map Nominate Admin Error");
@@ -683,7 +683,7 @@ public Action Command_Nominate(int client, int args)
 		return Plugin_Handled;
 	}
 
-	bool VIPRestriction = GetMapVIPRestriction(mapname, client);
+	bool VIPRestriction = IsClientMapVIPRestricted(mapname, client);
 	if(restrictionsActive && VIPRestriction)
 	{
 		CPrintToChat(client, "{green}[NE]{default} %t", "Map Nominate VIP Error");
@@ -692,7 +692,7 @@ public Action Command_Nominate(int client, int args)
 	}
 
 	#if defined _zleader_included
-	bool LeaderRestriction = GetMapLeaderRestriction(mapname, client);
+	bool LeaderRestriction = IsClientMapLeaderRestricted(mapname, client);
 	if(restrictionsActive && LeaderRestriction)
 	{
 		CPrintToChat(client, "{green}[NE]{default} %t", "Map Nominate Leader Error");
@@ -935,16 +935,16 @@ bool PopulateNominateListMenu(Menu menu, int client, const char[] filter = "")
 		{
 			strcopy(display, sizeof(display), map);
 
-			bool adminRestriction = GetMapAdminRestriction(map);
+			bool adminRestriction = IsClientMapAdminRestricted(map);
 			if((adminRestriction) && restrictionsActive)
 				Format(display, sizeof(display), "%s (%T)", display, "Admin Nomination", client);
 
-			bool VIPRestriction = GetMapVIPRestriction(map);
+			bool VIPRestriction = IsClientMapVIPRestricted(map);
 			if((VIPRestriction) && restrictionsActive)
 				Format(display, sizeof(display), "%s (%T)", display, "VIP Nomination", client);
 
 			#if defined _zleader_included
-			bool LeaderRestriction = GetMapLeaderRestriction(map);
+			bool LeaderRestriction = IsClientMapLeaderRestricted(map);
 			if((LeaderRestriction) && restrictionsActive)
 				Format(display, sizeof(display), "%s (%T)", display, "Leader Nomination", client);
 			#endif
@@ -1053,10 +1053,10 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				GetMapTimeRestriction(map) ||
 				GetMapPlayerRestriction(map) ||
 				GetMapGroupRestriction(map, param1) >= 0 ||
-				GetMapAdminRestriction(map, param1) ||
-				GetMapVIPRestriction(map, param1)
+				IsClientMapAdminRestricted(map, param1) ||
+				IsClientMapVIPRestricted(map, param1)
 				#if defined _zleader_included
-				|| GetMapLeaderRestriction(map, param1)
+				|| IsClientMapLeaderRestricted(map, param1)
 				#endif
 				))
 			{
@@ -1128,10 +1128,10 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 				GetMapTimeRestriction(map) ||
 				GetMapPlayerRestriction(map) ||
 				GetMapGroupRestriction(map, param1) >= 0 ||
-				GetMapAdminRestriction(map, param1) ||
-				GetMapVIPRestriction(map, param1)
+				IsClientMapAdminRestricted(map, param1) ||
+				IsClientMapVIPRestricted(map, param1)
 				#if defined _zleader_included
-				|| GetMapLeaderRestriction(map, param1)
+				|| IsClientMapLeaderRestricted(map, param1)
 				#endif
 				))
 			{
@@ -1173,20 +1173,20 @@ public int Handler_MapSelectMenu(Menu menu, MenuAction action, int param1, int p
 			else
 				strcopy(buffer, sizeof(buffer), map);
 
-			bool adminRestriction = GetMapAdminRestriction(map);
+			bool adminRestriction = IsClientMapAdminRestricted(map);
 			if(restrictionsActive && adminRestriction)
 			{
 				Format(buffer, sizeof(buffer), "%s (%T)", buffer, "Admin Restriction", param1);
 			}
 
-			bool VIPRestriction = GetMapVIPRestriction(map);
+			bool VIPRestriction = IsClientMapVIPRestricted(map);
 			if(restrictionsActive && VIPRestriction)
 			{
 				Format(buffer, sizeof(buffer), "%s (%T)", buffer, "VIP Restriction", param1);
 			}
 
 			#if defined _zleader_included
-			bool LeaderRestriction = GetMapLeaderRestriction(map);
+			bool LeaderRestriction = IsClientMapLeaderRestricted(map);
 			if(restrictionsActive && LeaderRestriction)
 			{
 				Format(buffer, sizeof(buffer), "%s (%T)", buffer, "Leader Restriction", param1);
@@ -1361,10 +1361,10 @@ public int Handler_AdminMapSelectMenu(Menu menu, MenuAction action, int param1, 
 					GetMapTimeRestriction(map) ||
 					GetMapPlayerRestriction(map) ||
 					GetMapGroupRestriction(map, param1) >= 0 ||
-					GetMapAdminRestriction(map, param1) ||
-					GetMapVIPRestriction(map, param1)
+					IsClientMapAdminRestricted(map, param1) ||
+					IsClientMapVIPRestricted(map, param1)
 					#if defined _zleader_included
-					|| GetMapLeaderRestriction(map, param1)
+					|| IsClientMapLeaderRestricted(map, param1)
 					#endif
 					))
 				{
