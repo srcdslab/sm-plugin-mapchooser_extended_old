@@ -45,7 +45,7 @@
 #include <basecomm>
 #include <multicolors>
 
-#define NE_VERSION "1.3.10"
+#define NE_VERSION "1.3.11"
 
 public Plugin myinfo =
 {
@@ -120,6 +120,7 @@ public void OnPluginStart()
 	RegConsoleCmd("say", Command_Say);
 	RegConsoleCmd("say_team", Command_Say);
 
+	RegConsoleCmd("sm_nom", Command_Nominate);
 	RegConsoleCmd("sm_nominate", Command_Nominate);
 	RegConsoleCmd("sm_nomlist", Command_NominateList);
 
