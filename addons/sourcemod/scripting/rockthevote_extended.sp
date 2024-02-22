@@ -41,10 +41,13 @@
 #include <nextmap>
 
 #include <multicolors>
+
+#undef REQUIRE_PLUGIN
 #tryinclude <AFKManager>
 #tryinclude <PlayerManager>
+#define REQUIRE_PLUGIN
 
-#define RTVE_VERSION "1.3.5"
+#define RTVE_VERSION "1.3.6"
 
 public Plugin myinfo =
 {
