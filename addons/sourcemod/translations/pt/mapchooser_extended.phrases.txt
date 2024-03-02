@@ -2,17 +2,17 @@
 {
 	"Vote Nextmap"
 	{
-		"pt"			"Vote para o próximo mapa!"
+		"pt"			"Vote para o prï¿½ximo mapa!"
 	}	
 
 	"Nextmap Voting Started"
 	{
-		"pt"			"Votação para o próximo mapa começou."
+		"pt"			"Votaï¿½ï¿½o para o prï¿½ximo mapa comeï¿½ou."
 	}	
 
 	"Nextmap Voting Finished"
 	{
-		"pt"			"A votação para o próximo mapa terminou. O próximo mapa será {1}. (Recebidos {2}%% de {3} votos)"
+		"pt"			"A votaï¿½ï¿½o para o prï¿½ximo mapa terminou. O prï¿½ximo mapa serï¿½ {1}. (Recebidos {2}%% de {3} votos)"
 	}
 
 	"Current Map Extended"
@@ -27,7 +27,7 @@
 
 	"Dont Change"
 	{
-		"pt"			"Não Mudar"
+		"pt"			"Nï¿½o Mudar"
 	}
 
 	"Current Map Stays"
@@ -37,17 +37,17 @@
 
 	"Changed Next Map"
 	{
-		"pt"		"Mudado o próximo mapa para \"{1}\"."	
+		"pt"		"Mudado o prï¿½ximo mapa para \"{1}\"."	
 	}
 
 	"Runoff Vote Nextmap"
 	{
-		"pt"		"Segundo turno de votos para o próximo mapa!"
+		"pt"		"Segundo turno de votos para o prï¿½ximo mapa!"
 	}
 
 	"Number Of Votes"
 	{
-		"pt"		"Número de votos"
+		"pt"		"Nï¿½mero de votos"
 	}
 
 	"Custom"
@@ -57,37 +57,37 @@
 
 	"Revote Is Needed"
 	{
-		"pt"		"Nenhum mapa recebeu mais que {1}%% de votos.\nEntão, qual mapa ganhará? Precisa de uma nova votação!"
+		"pt"		"Nenhum mapa recebeu mais que {1}%% de votos.\nEntï¿½o, qual mapa ganharï¿½? Precisa de uma nova votaï¿½ï¿½o!"
 	}
 
 	"Revote Warning"
 	{
-		"pt"		"Segundo turno começa em: {1}s"
+		"pt"		"Segundo turno comeï¿½a em: {1}s"
 	}
 
 	"Vote Warning"
 	{
-		"pt"		"Atenção! Votação para o próximo mapa começará em: {1}s"
+		"pt"		"Atenï¿½ï¿½o! Votaï¿½ï¿½o para o prï¿½ximo mapa comeï¿½arï¿½ em: {1}s"
 	}
 
 	"Line One"
 	{
-		"pt"		"Considere que mapa você quer jogar..."
+		"pt"		"Considere que mapa vocï¿½ quer jogar..."
 	}
 
 	"Line Two"
 	{
-		"pt"		"...e não aperte os botões sem pensar ;-)"
+		"pt"		"...e nï¿½o aperte os botï¿½es sem pensar ;-)"
 	}
 
 	"Cannot Start Vote"
 	{
-		"pt"		"Votação em progresso.  Tentando novamente em {1}s."
+		"pt"		"Votaï¿½ï¿½o em progresso.  Tentando novamente em {1}s."
 	}
 
 	"Tie Vote"
 	{
-		"pt"		"Os {1} mapas tiveram o mesmo número de votos.\nUma nova votação é necessária!"
+		"pt"		"Os {1} mapas tiveram o mesmo nï¿½mero de votos.\nUma nova votaï¿½ï¿½o ï¿½ necessï¿½ria!"
 	}
 
 	"Custom Marked"
